@@ -18,6 +18,20 @@ const SUGGESTED_PROMPTS = [
   { text: 'How does online shopping impact CO₂?', icon: ShoppingBag },
 ];
 
+// ── Render Helpers ──────────────────────────────────────────
+
+function renderBoldText(line: string, keyPrefix: string) {
+  return line.split(/(\*\*.*?\*\*)/g).filter(Boolean).map((part, idx) =>
+    part.startsWith('**') && part.endsWith('**') ? (
+      <strong key={`${keyPrefix}-${idx}`} className="font-bold uppercase tracking-wide">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <React.Fragment key={`${keyPrefix}-${idx}`}>{part}</React.Fragment>
+    )
+  );
+}
+
 // ── Page Component ──────────────────────────────────────────
 
 export default function InsightsPage() {
@@ -96,14 +110,10 @@ export default function InsightsPage() {
                       : 'bg-white text-[var(--ct-ink)]'
                   }`}
                 >
-                  {msg.text.split('\n').map((line, li) => (
+                  {msg.text.split('\n').map((line, li, arr) => (
                     <React.Fragment key={li}>
-                      {line.startsWith('**') ? (
-                        <span dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold uppercase tracking-wide">$1</strong>') }} />
-                      ) : (
-                        <span dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold uppercase tracking-wide">$1</strong>') }} />
-                      )}
-                      {li < msg.text.split('\n').length - 1 && <br />}
+                      {renderBoldText(line, `${msg.timestamp}-${li}`)}
+                      {li < arr.length - 1 && <br />}
                     </React.Fragment>
                   ))}
                 </div>

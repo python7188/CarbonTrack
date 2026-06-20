@@ -14,6 +14,8 @@ import {
 } from 'recharts';
 
 import type { StatCardData, KpiItem, TrendPoint, Activity } from '../types';
+import { WebGLGlobe } from '../components/visualizations/WebGLGlobe';
+import { AiInsightWidget } from '../components/features/ai/AiInsightWidget';
 import { getHistory } from '../lib/storage';
 import {
   SPARKLINE_DATA,
@@ -363,24 +365,16 @@ export default function DashboardPage() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.2, type: "spring" }}
-              className="absolute bottom-4 right-4 bg-white border-2 border-[var(--ct-border-hard)] p-4 shadow-[4px_4px_0px_var(--ct-border-hard)] max-w-sm hidden md:block z-20"
+              className="absolute bottom-4 right-4 max-w-sm hidden md:block z-20"
             >
-              <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-[var(--ct-border-hard)]">
-                <h4 className="font-bold text-xs uppercase tracking-widest text-[var(--ct-ink)] flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[var(--ct-accent)] fill-[var(--ct-accent)]" strokeWidth={2} /> AI Predictive Insight
-                </h4>
-              </div>
-              <p className="text-xs text-[var(--ct-ink-muted)] mb-3 font-medium leading-relaxed">
-                Reduce <strong className="text-[var(--ct-ink)] font-bold bg-[var(--ct-accent)] px-1">Footprint</strong> by executing the following protocols based on your telemetry:
-              </p>
-              <div className="flex flex-col gap-2 text-[10px] font-bold uppercase tracking-widest">
-                <motion.div whileHover={{ x: 4 }} className="border border-[var(--ct-border-hard)] px-2 py-1.5 flex items-center gap-2 hover:bg-[var(--ct-bg-surface)] cursor-pointer transition-colors">
-                  <Car className="w-3 h-3" /> Execute: Public Transit (Mon-Wed)
-                </motion.div>
-                <motion.div whileHover={{ x: 4 }} className="border border-[var(--ct-border-hard)] px-2 py-1.5 flex items-center gap-2 hover:bg-[var(--ct-bg-surface)] cursor-pointer transition-colors">
-                  <Leaf className="w-3 h-3" /> Execute: Plant-Based Diet (Weekend)
-                </motion.div>
-              </div>
+              <AiInsightWidget
+                totalKg={totalEmissions}
+                categoryBreakdown={
+                  Object.entries(categoryTotals)
+                    .map(([cat, kg]) => `${cat} ${Math.round((kg / (totalEmissions || 1)) * 100)}%`)
+                    .join(', ') || 'No activity logged yet'
+                }
+              />
             </motion.div>
           </div>
         </motion.div>
@@ -392,10 +386,12 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="lg:col-span-6 card-brutal p-6 flex flex-col min-h-[260px] bg-white">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b-2 border-[var(--ct-border-hard)]">
             <h3 className="font-bold text-sm uppercase tracking-widest">Footprint Trend</h3>
-            <div className="flex text-[10px] font-bold uppercase tracking-widest border-2 border-[var(--ct-border-hard)]">
+            <div role="tablist" aria-label="Trend time range" className="flex text-[10px] font-bold uppercase tracking-widest border-2 border-[var(--ct-border-hard)]">
               {['Week', 'Month', 'Year'].map((tab) => (
                 <button
                   key={tab}
+                  role="tab"
+                  aria-selected={activeTab === tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 transition-colors border-r-2 border-[var(--ct-border-hard)] last:border-r-0 ${
                     activeTab === tab

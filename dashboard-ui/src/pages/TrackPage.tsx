@@ -4,7 +4,7 @@
 // ============================================================
 
 import { useState, useCallback } from 'react';
-import { Car, Zap, UtensilsCrossed, ShoppingBag, Plus, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Car, Zap, UtensilsCrossed, ShoppingBag, Plus, Check, AlertCircle, Loader2, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getGeminiEndpoint } from '../constants';
 import type { Activity } from '../types';
@@ -60,7 +60,7 @@ const ACTIVITY_OPTIONS: Record<string, { label: string; activities: { name: stri
   },
 };
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<any>> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   transport: Car,
   food: UtensilsCrossed,
   energy: Zap,
@@ -209,7 +209,7 @@ export default function TrackPage() {
             <legend className="text-sm font-bold font-display text-[var(--ct-ink)] uppercase tracking-widest mb-4">1. Select Category</legend>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {Object.entries(ACTIVITY_OPTIONS).map(([key, opt]) => {
-                const Icon = CATEGORY_ICONS[key as keyof typeof CATEGORY_ICONS] as React.ComponentType<any>;
+                const Icon = CATEGORY_ICONS[key];
                 const isActive = category === key;
                 return (
                   <button
@@ -247,6 +247,7 @@ export default function TrackPage() {
                         ? 'border-[var(--ct-border-hard)] bg-[var(--ct-accent)] text-[var(--ct-ink)] shadow-[4px_4px_0px_var(--ct-border-hard)] translate-x-[-2px] translate-y-[-2px]'
                         : 'border-[var(--ct-border-hard)] bg-[var(--ct-bg-light)] text-[var(--ct-ink)] hover:bg-[var(--ct-bg-surface)] hover:shadow-[4px_4px_0px_var(--ct-border-hard)] hover:-translate-y-1'
                     }`}
+                    aria-pressed={isActive}
                   >
                     {a.name}
                   </button>

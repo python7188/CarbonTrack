@@ -2,21 +2,15 @@ import { useState } from 'react';
 import { Calendar, Trash2, Activity, Filter } from 'lucide-react';
 import { getHistory } from '../lib/storage';
 
-interface ActivityRecord {
-  id: string;
-  category: string;
-  activity: string;
-  amount: number;
-  unit: string;
-  co2: number;
-  timestamp: string;
-}
+import type { Activity as ActivityType } from '../types';
 
 export default function HistoryPage() {
   const [filter, setFilter] = useState<string>('all');
-  const [history, setHistory] = useState<ActivityRecord[]>(() => {
-    return getHistory().sort((a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime()) as any;
-  });
+  const [history, setHistory] = useState<ActivityType[]>(() =>
+    [...getHistory()].sort(
+      (a, b) => new Date(b.timestamp || b.date || '').getTime() - new Date(a.timestamp || a.date || '').getTime()
+    )
+  );
   const availableYears = Array.from(new Set(history.map(item => new Date(item.timestamp).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -83,11 +77,12 @@ export default function HistoryPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
           {/* Category Filter */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto hide-scrollbar">
-            <Filter className="w-5 h-5 text-[var(--ct-ink-muted)] mr-2 shrink-0" />
+            <Filter className="w-5 h-5 text-[var(--ct-ink-muted)] mr-2 shrink-0" aria-hidden="true" />
             {['all', 'transport', 'food', 'energy', 'shopping'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
+                aria-pressed={filter === cat}
                 className={`px-4 py-2 font-bold text-xs uppercase tracking-widest border-2 whitespace-nowrap transition-all ${
                   filter === cat
                     ? 'bg-[var(--ct-ink)] text-white border-[var(--ct-ink)] shadow-[2px_2px_0px_var(--ct-border-hard)]'
@@ -139,7 +134,7 @@ export default function HistoryPage() {
             <div key={item.id} className="card-brutal bg-white p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--ct-border-hard)] transition-all">
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 border-2 border-[var(--ct-border-hard)] flex items-center justify-center shadow-[2px_2px_0px_var(--ct-border-hard)] bg-[var(--ct-accent)]`}>
-                  <Activity className="w-6 h-6 text-[var(--ct-ink)]" strokeWidth={2} />
+                  <Activity className="w-6 h-6 text-[var(--ct-ink)]" strokeWidth={2} aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-bold uppercase tracking-widest text-[var(--ct-ink)] group-hover:text-[var(--ct-accent-dark)] transition-colors">

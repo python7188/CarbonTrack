@@ -134,23 +134,3 @@ export interface Challenge {
   progress: number;
   total: number;
 }
-
-// ── Leaderboard ─────────────────────────────────────────────
-
-export interface LeaderboardEntry {
-  rank: number;
-  name: string;
-  avatarUrl: string;
-  score: number;
-  trend: 'up' | 'down' | 'same';
-}
-
-// ── User Profile ────────────────────────────────────────────
-
-export interface UserProfile {
-  name: string;
-  avatarUrl?: string;
-  ecoPoints: number;
-  rank: string;
-  joinedDate: string;
-}

@@ -20,13 +20,17 @@ import { getHistory } from '../lib/storage';
 // We will compute CATEGORY_DETAILS dynamically below
 
 // ── Custom Tooltip for Chart ────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BrutalistTooltip = ({ active, payload, label }: any) => {
+interface BrutalistTooltipProps {
+  active?: boolean;
+  label?: string;
+  payload?: { name: string; value: number; fill: string }[];
+}
+const BrutalistTooltip = ({ active, payload, label }: BrutalistTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white border-4 border-[var(--ct-border-hard)] p-3 shadow-[4px_4px_0px_var(--ct-border-hard)]">
         <p className="font-display font-bold uppercase tracking-widest text-[var(--ct-ink)] mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest" style={{ color: entry.fill }}>
             <span className="w-3 h-3 border-2 border-current" />
             <span>{entry.name}: {entry.value}</span>
@@ -209,7 +213,7 @@ export default function FootprintPage() {
               <p className="text-sm font-bold uppercase text-[var(--ct-ink-muted)]">No details available yet. Start logging!</p>
             </div>
           ) : CATEGORY_DETAILS.map((cat) => {
-            const CatIcon = cat.icon as React.ComponentType<any>;
+            const CatIcon = cat.icon;
             const pct = Math.round((cat.amount / totalKg) * 100) || 0;
             return (
               <div
@@ -220,7 +224,7 @@ export default function FootprintPage() {
                   <div
                     className="w-12 h-12 flex items-center justify-center border-2 border-[var(--ct-border-hard)] bg-[var(--ct-bg-surface)] shadow-[2px_2px_0px_var(--ct-border-hard)]"
                   >
-                    <CatIcon className="w-6 h-6 stroke-[2px]" style={{ color: cat.color }} />
+                    <CatIcon className="w-6 h-6 stroke-[2px]" style={{ color: cat.color }} aria-hidden="true" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-display font-bold uppercase tracking-wider text-[var(--ct-ink)]">{cat.name}</h3>

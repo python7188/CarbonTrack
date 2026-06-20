@@ -4,9 +4,7 @@
 // ============================================================
 
 import { useState } from 'react';
-import { Car, UtensilsCrossed, Zap, ShoppingBag, Leaf, TrendingDown, Filter } from 'lucide-react';
-
-import { } from '../constants';
+import { Car, UtensilsCrossed, Zap, ShoppingBag, Leaf, TrendingDown, Filter, type LucideIcon } from 'lucide-react';
 
 // ── Data ────────────────────────────────────────────────────
 
@@ -27,7 +25,7 @@ const DIFFICULTY_COLORS: Record<Difficulty, { text: string; bg: string }> = {
   Hard:   { text: 'text-white',           bg: 'bg-[var(--ct-ink)]' },
 };
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<any>> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   transport: Car,
   food: UtensilsCrossed,
   energy: Zap,
@@ -112,6 +110,7 @@ export default function ReducePage() {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
+            aria-pressed={activeCategory === cat}
             className={`px-4 py-2 border-2 text-xs font-bold uppercase tracking-widest transition-all ${
               activeCategory === cat
                 ? 'border-[var(--ct-border-hard)] bg-[var(--ct-ink)] text-white shadow-[2px_2px_0px_var(--ct-accent)] translate-x-[-2px] translate-y-[-2px]'
@@ -126,7 +125,7 @@ export default function ReducePage() {
       {/* Tip Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filtered.map((tip) => {
-          const Icon = CATEGORY_ICONS[tip.category as keyof typeof CATEGORY_ICONS] as React.ComponentType<any>;
+          const Icon = CATEGORY_ICONS[tip.category];
           const diffStyle = DIFFICULTY_COLORS[tip.difficulty];
 
           return (
@@ -139,7 +138,7 @@ export default function ReducePage() {
                   <div
                     className="w-12 h-12 flex items-center justify-center shrink-0 border-2 border-[var(--ct-border-hard)] bg-[var(--ct-bg-surface)] shadow-[2px_2px_0px_var(--ct-border-hard)]"
                   >
-                    <Icon className="w-6 h-6 stroke-[2px] text-[var(--ct-ink)]" />
+                    <Icon className="w-6 h-6 stroke-[2px] text-[var(--ct-ink)]" aria-hidden="true" />
                   </div>
                   <h3 className="text-sm font-display font-bold uppercase tracking-wider text-[var(--ct-ink)]">{tip.action}</h3>
                 </div>
