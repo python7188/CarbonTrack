@@ -68,7 +68,7 @@ export default function InsightsPage() {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] max-w-[2560px] mx-auto">
+    <div className="flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] w-full max-w-none mx-auto">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-6">
         <h1 className="text-3xl md:text-5xl font-bold text-[var(--ct-ink)] tracking-tighter font-display uppercase flex items-center gap-3">
           AI Insights

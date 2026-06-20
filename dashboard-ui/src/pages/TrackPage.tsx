@@ -118,7 +118,7 @@ export default function TrackPage() {
       if (!validate()) return;
 
       const num = parseFloat(amount);
-      let co2Estimate = 0;
+      let co2Estimate: number;
 
       if (activityType === 'CUSTOM') {
         setIsCalculating(true);
@@ -195,7 +195,7 @@ export default function TrackPage() {
   );
 
   return (
-    <div className="space-y-8 max-w-6xl w-full mx-auto px-4 md:px-8">
+    <div className="space-y-8 w-full max-w-none mx-auto px-4 md:px-8">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[var(--ct-ink)] tracking-tighter font-display uppercase">Log Activities</h1>
         <p className="text-sm font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mt-2">Log your daily activities to track carbon emissions.</p>

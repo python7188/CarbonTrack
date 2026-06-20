@@ -5,7 +5,7 @@ export function calculateCO2(category: string, activityType: string, amount: num
     return amount;
   }
   
-  let estimate = 0;
+  let estimate: number;
   
   if (category === 'transport') {
     if (activityType.includes('diesel')) estimate = amount * 0.17;

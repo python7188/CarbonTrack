@@ -80,18 +80,18 @@ export default function LandingContact() {
               
               <h3 className="text-3xl font-black font-display uppercase tracking-widest mb-8 border-b-4 border-[var(--ct-border-hard)] pb-4">Initialize Contact</h3>
 
-              <form className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
+              <form method="POST" className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
                 <div>
-                  <label className="block text-sm font-black uppercase tracking-widest mb-3">Your Name</label>
-                  <input type="text" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow" placeholder="JOHN DOE" />
+                  <label htmlFor="contact-name" className="block text-sm font-black uppercase tracking-widest mb-3">Your Name</label>
+                  <input id="contact-name" name="name" type="text" autoComplete="name" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow" placeholder="JOHN DOE" />
                 </div>
                 <div>
-                  <label className="block text-sm font-black uppercase tracking-widest mb-3">Email Address</label>
-                  <input type="email" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow" placeholder="JOHN@EXAMPLE.COM" />
+                  <label htmlFor="contact-email" className="block text-sm font-black uppercase tracking-widest mb-3">Email Address</label>
+                  <input id="contact-email" name="email" type="email" autoComplete="email" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow" placeholder="JOHN@EXAMPLE.COM" />
                 </div>
                 <div>
-                  <label className="block text-sm font-black uppercase tracking-widest mb-3">Message payload</label>
-                  <textarea rows={6} className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow resize-none" placeholder="YOUR TRANSMISSION DATA..."></textarea>
+                  <label htmlFor="contact-message" className="block text-sm font-black uppercase tracking-widest mb-3">Message payload</label>
+                  <textarea id="contact-message" name="message" rows={6} autoComplete="off" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow resize-none" placeholder="YOUR TRANSMISSION DATA..."></textarea>
                 </div>
                 <button type="submit" className="btn-brutal bg-[var(--ct-ink)] text-white py-6 text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-gray-800 transition-colors mt-4">
                   TRANSMIT <Send className="w-8 h-8" />

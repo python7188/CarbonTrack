@@ -1,29 +1,26 @@
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Sphere, Points, PointMaterial, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Generate random particles
+const particlesCount = 2000;
+const defaultPositions = new Float32Array(particlesCount * 3);
+for (let i = 0; i < particlesCount; i++) {
+  const r = 2.5 + Math.random() * 0.5;
+  const theta = 2 * Math.PI * Math.random();
+  const phi = Math.acos(2 * Math.random() - 1);
+  const x = r * Math.sin(phi) * Math.cos(theta);
+  const y = r * Math.sin(phi) * Math.sin(theta);
+  const z = r * Math.cos(phi);
+  defaultPositions[i * 3] = x;
+  defaultPositions[i * 3 + 1] = y;
+  defaultPositions[i * 3 + 2] = z;
+}
+
 export const WebGLGlobe = () => {
   const groupRef = useRef<THREE.Group>(null);
   const pointsRef = useRef<THREE.Points>(null);
-
-  // Generate random particles
-  const particlesCount = 2000;
-  const positions = useMemo(() => {
-    const positions = new Float32Array(particlesCount * 3);
-    for (let i = 0; i < particlesCount; i++) {
-      const r = 2.5 + Math.random() * 0.5;
-      const theta = 2 * Math.PI * Math.random();
-      const phi = Math.acos(2 * Math.random() - 1);
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = z;
-    }
-    return positions;
-  }, [particlesCount]);
 
   useFrame((state, delta) => {
     if (groupRef.current) {
@@ -64,9 +61,9 @@ export const WebGLGlobe = () => {
           <bufferAttribute
             attach="attributes-position"
             count={particlesCount}
-            array={positions}
+            array={defaultPositions}
             itemSize={3}
-            args={[positions, 3]}
+            args={[defaultPositions, 3]}
           />
         </bufferGeometry>
         <PointMaterial

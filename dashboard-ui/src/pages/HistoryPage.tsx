@@ -61,7 +61,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-6xl mx-auto w-full gap-8">
+    <div className="flex flex-col h-full w-full max-w-none mx-auto gap-8">
       {/* Header */}
       <div className="flex flex-col gap-4 pb-6 border-b-4 border-[var(--ct-border-hard)]">
         <h1 className="text-4xl sm:text-5xl font-black font-display uppercase tracking-tighter text-[var(--ct-ink)]">

@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { Leaf, Flame, Target, Trophy, Zap, Car, Activity as ActivityIcon, TrendingDown, ArrowRight, Check } from 'lucide-react';
+import { Leaf, Trophy, TrendingDown, Target, Activity as ActivityIcon, ArrowRight, Check, Flame } from 'lucide-react';
 import {
   LineChart, Line, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell,
@@ -282,7 +282,7 @@ export default function DashboardPage() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="space-y-6 max-w-[2560px] mx-auto relative"
+      className="space-y-6 w-full max-w-none mx-auto relative"
     >
       <AnimatePresence>
         {showStreakPopup && (

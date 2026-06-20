@@ -76,7 +76,7 @@ export default function ReducePage() {
   const totalPotentialSavings = filtered.reduce((sum, t) => sum + t.savingsKg, 0);
 
   return (
-    <div className="space-y-8 max-w-[2560px] mx-auto">
+    <div className="space-y-8 w-full max-w-none mx-auto">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[var(--ct-ink)] tracking-tighter font-display uppercase flex items-center gap-3">
           Reduce Impact
