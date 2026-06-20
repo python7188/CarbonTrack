@@ -48,13 +48,21 @@ const itemVariants: Variants = {
 
 // ── WebGL Visualizer Wrapper ────────────────────────────────
 function VisualizerContainer() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="w-full h-full min-h-[400px] bg-[var(--ct-ink)] relative overflow-hidden flex flex-col font-mono text-[10px] sm:text-xs text-[var(--ct-accent)]/80 transition-colors group cursor-grab active:cursor-grabbing">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_var(--ct-ink)_100%)] z-10 pointer-events-none" />
       <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
-          <WebGLGlobe />
-        </Canvas>
+        {mounted && (
+          <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+            <WebGLGlobe />
+          </Canvas>
+        )}
       </div>
       
       {/* HUD Overlay */}
@@ -272,7 +280,7 @@ export default function DashboardPage() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="space-y-6 max-w-7xl mx-auto relative"
+      className="space-y-6 max-w-[2560px] mx-auto relative"
     >
       <AnimatePresence>
         {showStreakPopup && (

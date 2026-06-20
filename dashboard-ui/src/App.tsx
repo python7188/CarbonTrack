@@ -9,18 +9,18 @@ import { SkeletonLoader } from './components/ui/SkeletonLoader';
 // Lazy load pages for code splitting
 import { PublicLayout } from './components/layout/PublicLayout';
 
-const LandingHome = lazy(() => import('./pages/LandingHome'));
-const LandingFeatures = lazy(() => import('./pages/LandingFeatures'));
-const LandingAbout = lazy(() => import('./pages/LandingAbout'));
-const LandingContact = lazy(() => import('./pages/LandingContact'));
-const AuthPage = lazy(() => import('./pages/AuthPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const FootprintPage = lazy(() => import('./pages/FootprintPage'));
-const TrackPage = lazy(() => import('./pages/TrackPage'));
-const InsightsPage = lazy(() => import('./pages/InsightsPage'));
-const ReducePage = lazy(() => import('./pages/ReducePage'));
-const GoalsPage = lazy(() => import('./pages/GoalsPage'));
-const HistoryPage = lazy(() => import('./pages/HistoryPage'));
+import LandingHome from './pages/LandingHome';
+import LandingFeatures from './pages/LandingFeatures';
+import LandingAbout from './pages/LandingAbout';
+import LandingContact from './pages/LandingContact';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+import FootprintPage from './pages/FootprintPage';
+import TrackPage from './pages/TrackPage';
+import InsightsPage from './pages/InsightsPage';
+import ReducePage from './pages/ReducePage';
+import GoalsPage from './pages/GoalsPage';
+import HistoryPage from './pages/HistoryPage';
 // A fallback component for loading states
 const PageLoader = () => (
   <div className="p-8 space-y-6">

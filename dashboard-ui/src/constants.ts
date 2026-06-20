@@ -24,9 +24,7 @@ export const API_BASE_URL = '/api';
 
 /** Gemini proxy endpoint */
 export const getGeminiEndpoint = () => {
-  const key = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!key) throw new Error("VITE_GEMINI_API_KEY is missing in your .env.local file");
-  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+  return '/api/gemini';
 };
 
 /** Rate-limit: minimum ms between Gemini calls */

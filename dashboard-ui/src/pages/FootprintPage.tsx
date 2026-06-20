@@ -93,7 +93,7 @@ export default function FootprintPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-[2560px] mx-auto">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-[var(--ct-ink)] tracking-tighter font-display uppercase">My Footprint</h1>
         <p className="text-sm font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mt-2">A detailed look at your carbon emissions this month.</p>
