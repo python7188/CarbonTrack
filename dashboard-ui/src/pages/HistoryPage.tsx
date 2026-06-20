@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Trash2, Activity, Filter } from 'lucide-react';
+import { getHistory } from '../lib/storage';
 
 interface ActivityRecord {
   id: string;
@@ -14,19 +15,8 @@ interface ActivityRecord {
 export default function HistoryPage() {
   const [filter, setFilter] = useState<string>('all');
   const [history, setHistory] = useState<ActivityRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('ct_history');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const filtered = Array.isArray(parsed) ? parsed.filter(a => a && typeof a === 'object') : [];
-        return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      }
-    } catch (e) {
-      console.error('Failed to load history', e);
-    }
-    return [];
+    return getHistory().sort((a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime()) as any;
   });
-
   const availableYears = Array.from(new Set(history.map(item => new Date(item.timestamp).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');

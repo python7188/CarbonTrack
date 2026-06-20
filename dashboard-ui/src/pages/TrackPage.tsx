@@ -7,33 +7,60 @@ import { useState, useCallback } from 'react';
 import { Car, Zap, UtensilsCrossed, ShoppingBag, Plus, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getGeminiEndpoint } from '../constants';
+import type { Activity } from '../types';
+import { calculateCO2 } from '../lib/carbonMath';
+import { getHistory, saveHistory } from '../lib/storage';
 
 // ── Activity type options per category ──────────────────────
 
-const ACTIVITY_OPTIONS: Record<string, { label: string; unit: string; activities: string[] }> = {
+const ACTIVITY_OPTIONS: Record<string, { label: string; activities: { name: string, unit: string }[] }> = {
   transport: {
     label: 'Transport',
-    unit: 'km',
-    activities: ['Car (petrol)', 'Car (diesel)', 'Motorcycle', 'Bus', 'Metro/Train', 'Auto-rickshaw', 'Flight (domestic)', 'Flight (international)', 'CUSTOM'],
+    activities: [
+      { name: 'Car (petrol)', unit: 'km' },
+      { name: 'Car (diesel)', unit: 'km' },
+      { name: 'Motorcycle', unit: 'km' },
+      { name: 'Bus/Metro', unit: 'km' },
+      { name: 'Flight (domestic)', unit: 'hours' },
+      { name: 'CUSTOM', unit: 'custom' },
+    ],
   },
   food: {
     label: 'Food',
-    unit: 'meals',
-    activities: ['Red meat meal', 'Poultry meal', 'Fish meal', 'Vegetarian meal', 'Vegan meal', 'Dairy products', 'Restaurant takeaway', 'CUSTOM'],
+    activities: [
+      { name: 'Red meat meal', unit: 'meals' },
+      { name: 'Poultry meal', unit: 'meals' },
+      { name: 'Vegetarian meal', unit: 'meals' },
+      { name: 'Vegan meal', unit: 'meals' },
+      { name: 'Dairy products', unit: 'kg' },
+      { name: 'CUSTOM', unit: 'custom' },
+    ],
   },
   energy: {
     label: 'Energy',
-    unit: 'kWh',
-    activities: ['Electricity', 'LPG cooking', 'Air conditioning', 'Water heating (geyser)', 'Generator', 'CUSTOM'],
+    activities: [
+      { name: 'Electricity', unit: 'kWh' },
+      { name: 'LPG cooking', unit: 'cylinders' },
+      { name: 'Air conditioning', unit: 'hours' },
+      { name: 'Water heating', unit: 'hours' },
+      { name: 'Generator', unit: 'liters' },
+      { name: 'CUSTOM', unit: 'custom' },
+    ],
   },
   shopping: {
     label: 'Shopping',
-    unit: 'items',
-    activities: ['Clothing', 'Electronics', 'Furniture', 'Online delivery', 'Groceries (packaged)', 'CUSTOM'],
+    activities: [
+      { name: 'Clothing', unit: 'items' },
+      { name: 'Electronics', unit: 'items' },
+      { name: 'Furniture', unit: 'items' },
+      { name: 'Groceries (packaged)', unit: 'bags' },
+      { name: 'Online delivery', unit: 'packages' },
+      { name: 'CUSTOM', unit: 'custom' },
+    ],
   },
 };
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<any>> = {
   transport: Car,
   food: UtensilsCrossed,
   energy: Zap,
@@ -42,17 +69,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 
 
 
-interface Activity {
-  id: string;
-  category: string;
-  activity: string;
-  amount: number;
-  unit: string;
-  co2: number;
-  timestamp: string;
-  date?: string;
-  notes?: string;
-}
 
 // ── Page Component ──────────────────────────────────────────
 
@@ -107,27 +123,38 @@ export default function TrackPage() {
       if (activityType === 'CUSTOM') {
         setIsCalculating(true);
         try {
-          const prompt = `Calculate the estimated carbon emissions (in kg CO2e) for the following custom activity: "${customDescription}" with an amount of ${num} ${currentOptions.unit}. Return ONLY a valid JSON object with the exact format {"co2": 12.5}. Do not return any markdown formatting, backticks, or other text.`;
+          const selectedUnit = currentOptions.activities.find(a => a.name === activityType)?.unit || 'units';
+          const prompt = `Calculate the estimated carbon emissions (in kg CO2e) for the following custom activity: "${customDescription}" with an amount of ${num} ${selectedUnit}. Return ONLY a JSON object with the exact format {"co2": 12.5}.`;
           
           const response = await fetch(getGeminiEndpoint(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: { temperature: 0.1, maxOutputTokens: 64 },
+              generationConfig: { 
+                temperature: 0.1, 
+                responseMimeType: "application/json" 
+              },
             }),
           });
 
-          if (!response.ok) throw new Error('API request failed');
+          if (!response.ok) throw new Error('API request failed: ' + response.statusText);
           const json = await response.json();
           const responseText = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
           
-          // Clean potential markdown blocks
-          const cleanJsonString = responseText.replace(/```json\n?|\n?```/g, '').trim();
-          const parsed = JSON.parse(cleanJsonString);
+          // Robustly extract JSON object in case of markdown wrapping or extra text
+          const match = responseText.match(/\{[\s\S]*\}/);
+          if (!match) throw new Error('No JSON object found in response: ' + responseText);
           
-          if (typeof parsed.co2 !== 'number') throw new Error('Invalid JSON format returned');
-          co2Estimate = parsed.co2;
+          const parsed = JSON.parse(match[0]);
+          if (typeof parsed.co2 !== 'number') {
+            // Attempt to parse if it returned string "12.5"
+            const parsedNum = parseFloat(parsed.co2);
+            if (isNaN(parsedNum)) throw new Error('Invalid JSON format returned: ' + responseText);
+            co2Estimate = parsedNum;
+          } else {
+            co2Estimate = parsed.co2;
+          }
         } catch (error) {
           console.error('Failed to calculate custom CO2:', error);
           setErrors((prev) => ({ ...prev, api: 'Failed to estimate CO2 for custom activity. Please try again.' }));
@@ -136,24 +163,26 @@ export default function TrackPage() {
         }
         setIsCalculating(false);
       } else {
-        co2Estimate = Math.round(num * (category === 'transport' ? 0.17 : category === 'energy' ? 0.8 : category === 'food' ? 3.5 : 1.5) * 10) / 10;
+        co2Estimate = calculateCO2(category, activityType, num);
       }
 
+
+      const selectedOption = currentOptions.activities.find(a => a.name === activityType);
       const newActivity: Activity = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         category,
-        activity: activityType === 'CUSTOM' ? `Custom: ${customDescription}` : activityType,
+        activity: activityType === 'CUSTOM' ? customDescription : activityType,
         amount: num,
-        unit: currentOptions.unit,
+        unit: selectedOption?.unit || 'custom',
         co2: co2Estimate,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(date).toISOString(),
         date,
         notes,
       };
 
-      const existing = JSON.parse(localStorage.getItem('ct_history') || '[]');
-      localStorage.setItem('ct_history', JSON.stringify([newActivity, ...existing]));
-
+      const existing = getHistory();
+      saveHistory([...existing, newActivity]);
+      
       setActivityType('');
       setAmount('');
       setCustomDescription('');
@@ -180,7 +209,7 @@ export default function TrackPage() {
             <legend className="text-sm font-bold font-display text-[var(--ct-ink)] uppercase tracking-widest mb-4">1. Select Category</legend>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {Object.entries(ACTIVITY_OPTIONS).map(([key, opt]) => {
-                const Icon = CATEGORY_ICONS[key as keyof typeof CATEGORY_ICONS] as any;
+                const Icon = CATEGORY_ICONS[key as keyof typeof CATEGORY_ICONS] as React.ComponentType<any>;
                 const isActive = category === key;
                 return (
                   <button
@@ -207,25 +236,25 @@ export default function TrackPage() {
             <legend className="text-sm font-bold font-display text-[var(--ct-ink)] uppercase tracking-widest mb-4">2. Select Activity Type</legend>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {currentOptions.activities.map((a) => {
-                const isActive = activityType === a;
+                const isActive = activityType === a.name;
                 return (
                   <button
-                    key={a}
+                    key={a.name}
                     type="button"
-                    onClick={() => { setActivityType(a); setErrors((prev) => ({ ...prev, activity: undefined })); }}
+                    onClick={() => { setActivityType(a.name); setErrors((prev) => ({ ...prev, activity: undefined })); }}
                     className={`p-4 text-xs font-bold uppercase tracking-widest border-2 transition-all text-left break-words ${
                       isActive
                         ? 'border-[var(--ct-border-hard)] bg-[var(--ct-accent)] text-[var(--ct-ink)] shadow-[4px_4px_0px_var(--ct-border-hard)] translate-x-[-2px] translate-y-[-2px]'
                         : 'border-[var(--ct-border-hard)] bg-[var(--ct-bg-light)] text-[var(--ct-ink)] hover:bg-[var(--ct-bg-surface)] hover:shadow-[4px_4px_0px_var(--ct-border-hard)] hover:-translate-y-1'
                     }`}
                   >
-                    {a}
+                    {a.name}
                   </button>
                 );
               })}
             </div>
             {errors.activity && (
-              <p className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-4 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
+              <p role="alert" className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-4 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
                 <AlertCircle className="w-5 h-5 stroke-[3px]" /> {errors.activity}
               </p>
             )}
@@ -281,13 +310,13 @@ export default function TrackPage() {
                   step="any"
                   value={amount}
                   onChange={(e) => { setAmount(e.target.value); setErrors((prev) => ({ ...prev, amount: undefined })); }}
-                  placeholder={`ENTER ${currentOptions.unit.toUpperCase()}...`}
+                  placeholder="ENTER AMOUNT..."
                   className={`w-full bg-white border-4 px-6 py-4 pr-20 text-base text-[var(--ct-ink)] font-bold uppercase focus:outline-none focus:ring-0 focus:-translate-y-1 focus:shadow-[6px_6px_0px_var(--ct-border-hard)] transition-all ${
                     errors.amount ? 'border-[var(--ct-warning)] shadow-[6px_6px_0px_var(--ct-warning)]' : 'border-[var(--ct-border-hard)] shadow-[4px_4px_0px_var(--ct-border-hard)]'
                   }`}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[var(--ct-ink)] bg-[var(--ct-bg-surface)] px-3 py-1.5 border-2 border-[var(--ct-border-hard)] uppercase">
-                  {currentOptions.unit}
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--ct-ink-muted)] text-sm font-bold uppercase tracking-widest border-l-2 border-[var(--ct-border-hard)] pl-4">
+                  {currentOptions.activities.find(a => a.name === activityType)?.unit || 'units'}
                 </span>
               </div>
               {errors.amount && (

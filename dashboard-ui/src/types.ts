@@ -20,6 +20,18 @@ export interface NavItem {
 
 export type FootprintCategory = 'transport' | 'energy' | 'food' | 'shopping' | 'waste';
 
+export interface Activity {
+  id: string;
+  category: string;
+  activity: string;
+  amount: number;
+  unit: string;
+  co2: number;
+  timestamp?: string;
+  date?: string;
+  notes?: string;
+}
+
 export interface DonutSegment {
   name: string;
   value: number;

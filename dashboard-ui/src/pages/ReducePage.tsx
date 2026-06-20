@@ -27,7 +27,7 @@ const DIFFICULTY_COLORS: Record<Difficulty, { text: string; bg: string }> = {
   Hard:   { text: 'text-white',           bg: 'bg-[var(--ct-ink)]' },
 };
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<any>> = {
   transport: Car,
   food: UtensilsCrossed,
   energy: Zap,
@@ -126,7 +126,7 @@ export default function ReducePage() {
       {/* Tip Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filtered.map((tip) => {
-          const Icon = CATEGORY_ICONS[tip.category as keyof typeof CATEGORY_ICONS] as any;
+          const Icon = CATEGORY_ICONS[tip.category as keyof typeof CATEGORY_ICONS] as React.ComponentType<any>;
           const diffStyle = DIFFICULTY_COLORS[tip.difficulty];
 
           return (

@@ -24,7 +24,7 @@ export default function AuthPage() {
       await loginWithGoogle();
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
-    } catch (err: any) {
+    } catch {
       setError('Failed to log in. Please check your Firebase Configuration keys.');
     } finally {
       setIsLoggingIn(false);

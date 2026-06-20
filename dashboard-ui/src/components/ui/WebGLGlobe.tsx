@@ -23,7 +23,7 @@ export const WebGLGlobe = () => {
       positions[i * 3 + 2] = z;
     }
     return positions;
-  }, []);
+  }, [particlesCount]);
 
   useFrame((state, delta) => {
     if (groupRef.current) {

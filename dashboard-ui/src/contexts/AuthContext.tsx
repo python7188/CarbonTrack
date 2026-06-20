@@ -14,7 +14,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+/* eslint-disable react-refresh/only-export-components */
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const useAuth = () => {
   return useContext(AuthContext);

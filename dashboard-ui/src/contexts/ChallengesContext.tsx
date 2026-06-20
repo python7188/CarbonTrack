@@ -11,6 +11,7 @@ interface ChallengesContextType {
   leaveChallenge: (id: string) => void;
 }
 
+/* eslint-disable react-refresh/only-export-components */
 const ChallengesContext = createContext<ChallengesContextType | undefined>(undefined);
 
 export const ChallengesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

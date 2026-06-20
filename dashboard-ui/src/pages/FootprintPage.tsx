@@ -10,19 +10,17 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid,
 } from 'recharts';
 
-import { DONUT_DATA } from '../constants';
-import type { DonutSegment } from '../types';
+import type { DonutSegment, Activity } from '../types';
+import { getHistory } from '../lib/storage';
 
 // ── Demo data ───────────────────────────────────────────────
 
-const MONTHLY_COMPARISON: any[] = [
-  { month: 'Last Month', previous: 120, current: 0 },
-  { month: 'This Month', previous: 0, current: 0 },
-];
+// Dynamic data logic used in component
 
 // We will compute CATEGORY_DETAILS dynamically below
 
 // ── Custom Tooltip for Chart ────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BrutalistTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -43,21 +41,14 @@ const BrutalistTooltip = ({ active, payload, label }: any) => {
 // ── Page Component ──────────────────────────────────────────
 
 export default function FootprintPage() {
-  const [activities] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('ct_history');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return Array.isArray(parsed) ? parsed.filter(a => a && typeof a === 'object') : [];
-      }
-    } catch (e) {}
-    return [];
-  });
+  const [activities] = useState<Activity[]>(getHistory);
 
-  const totalKgRaw = activities.reduce((sum, act) => sum + Number(act?.co2 || 0), 0);
+  const validActivities = activities.filter(a => !a.id?.startsWith('tour-completed'));
+
+  const totalKgRaw = validActivities.reduce((sum, act) => sum + Number(act?.co2 || 0), 0);
   const totalKg = parseFloat(totalKgRaw.toFixed(1));
 
-  const categoryTotals = activities.reduce((acc, act) => {
+  const categoryTotals = validActivities.reduce((acc, act) => {
     const key = act?.category || 'waste';
     acc[key] = (acc[key] || 0) + Number(act?.co2 || 0);
     return acc;
@@ -70,6 +61,37 @@ export default function FootprintPage() {
     { name: 'Shopping', amount: categoryTotals.shopping || 0, icon: ShoppingBag, key: 'shopping', color: '#7F77DD', unit: 'kg', tip: 'Buy second-hand or durable items.' }
   ].filter(cat => cat.amount > 0);
 
+  let COMPUTED_DONUT_DATA = CATEGORY_DETAILS.map(cat => ({
+    name: cat.name,
+    value: Math.round((cat.amount / totalKg) * 100) || 0,
+    color: cat.color
+  }));
+
+  if (COMPUTED_DONUT_DATA.length === 0) {
+    COMPUTED_DONUT_DATA = [{ name: 'No Data', value: 100, color: 'var(--ct-border-hard)' }];
+  }
+
+  // Calculate dynamic Monthly Comparison
+  const currentMonthDate = new Date();
+  const lastMonthDate = new Date();
+  lastMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+  
+  const currentMonthStr = currentMonthDate.toISOString().slice(0, 7);
+  const lastMonthStr = lastMonthDate.toISOString().slice(0, 7);
+  const lastYearCurrentMonthStr = new Date(currentMonthDate.setFullYear(currentMonthDate.getFullYear() - 1)).toISOString().slice(0, 7);
+  const lastYearLastMonthStr = new Date(lastMonthDate.setFullYear(lastMonthDate.getFullYear() - 1)).toISOString().slice(0, 7);
+
+  const thisMonthTotal = validActivities.filter(a => (a.timestamp || a.date)?.startsWith(currentMonthStr)).reduce((sum, act) => sum + Number(act.co2 || 0), 0);
+  const lastMonthTotal = validActivities.filter(a => (a.timestamp || a.date)?.startsWith(lastMonthStr)).reduce((sum, act) => sum + Number(act.co2 || 0), 0);
+  
+  const lastYearThisMonthTotal = validActivities.filter(a => (a.timestamp || a.date)?.startsWith(lastYearCurrentMonthStr)).reduce((sum, act) => sum + Number(act.co2 || 0), 0);
+  const lastYearLastMonthTotal = validActivities.filter(a => (a.timestamp || a.date)?.startsWith(lastYearLastMonthStr)).reduce((sum, act) => sum + Number(act.co2 || 0), 0);
+
+  const MONTHLY_COMPARISON = [
+    { month: 'Last Month', previous: parseFloat(lastYearLastMonthTotal.toFixed(1)), current: parseFloat(lastMonthTotal.toFixed(1)) },
+    { month: 'This Month', previous: parseFloat(lastYearThisMonthTotal.toFixed(1)), current: parseFloat(thisMonthTotal.toFixed(1)) },
+  ];
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-8">
@@ -81,31 +103,40 @@ export default function FootprintPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="card-brutal p-8 bg-[var(--ct-ink)] text-white flex flex-col items-center border-[var(--ct-ink)] shadow-[8px_8px_0px_var(--ct-border-hard)]">
           <h2 className="text-lg font-bold font-display uppercase tracking-widest mb-6 self-start border-b-2 border-white/20 pb-2 w-full">Emissions Breakdown</h2>
-          <div className="w-[260px] h-[260px] relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
-                <Pie data={DONUT_DATA} innerRadius={80} outerRadius={110} paddingAngle={4} dataKey="value" stroke="#16211F" strokeWidth={4}>
-                  {DONUT_DATA.map((entry: DonutSegment, index: number) => (
-                    <Cell key={`cell-fp-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </RechartsPieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-5xl font-display font-bold tracking-tighter">{totalKg}</span>
-              <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1 bg-white/10 px-2 py-1">kg CO₂e</span>
+          
+          {validActivities.length === 0 ? (
+            <div className="flex-1 w-full flex items-center justify-center border-4 border-dashed border-white/20 min-h-[260px]">
+              <p className="text-sm font-bold uppercase tracking-widest text-white/60 text-center px-4">Log an activity to see this chart</p>
             </div>
-          </div>
-
-          <div className="w-full mt-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {DONUT_DATA.map((d: DonutSegment) => (
-              <div key={d.name} className="flex items-center gap-2 text-xs text-white/80 font-bold uppercase tracking-widest">
-                <span className="w-3 h-3 border-2 border-white" style={{ backgroundColor: d.color }} />
-                <span>{d.name}</span>
-                <span className="ml-auto font-display text-white">{d.value}%</span>
+          ) : (
+            <>
+              <div className="w-[260px] h-[260px] relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie data={COMPUTED_DONUT_DATA} innerRadius={80} outerRadius={110} paddingAngle={4} dataKey="value" stroke="#16211F" strokeWidth={4}>
+                      {COMPUTED_DONUT_DATA.map((entry: DonutSegment, index: number) => (
+                        <Cell key={`cell-fp-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-5xl font-display font-bold tracking-tighter">{totalKg}</span>
+                  <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1 bg-white/10 px-2 py-1">kg CO₂e</span>
+                </div>
               </div>
-            ))}
-          </div>
+
+              <div className="w-full mt-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {COMPUTED_DONUT_DATA.map((d: DonutSegment) => (
+                  <div key={d.name} className="flex items-center gap-2 text-xs text-white/80 font-bold uppercase tracking-widest">
+                    <span className="w-3 h-3 border-2 border-white" style={{ backgroundColor: d.color }} />
+                    <span>{d.name}</span>
+                    <span className="ml-auto font-display text-white">{d.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Summary Stats */}
@@ -178,7 +209,7 @@ export default function FootprintPage() {
               <p className="text-sm font-bold uppercase text-[var(--ct-ink-muted)]">No details available yet. Start logging!</p>
             </div>
           ) : CATEGORY_DETAILS.map((cat) => {
-            const CatIcon = cat.icon as any;
+            const CatIcon = cat.icon as React.ComponentType<any>;
             const pct = Math.round((cat.amount / totalKg) * 100) || 0;
             return (
               <div
@@ -219,18 +250,24 @@ export default function FootprintPage() {
       {/* ─── Monthly Comparison Bar Chart ───────────────────── */}
       <div className="card-brutal p-6 bg-white">
         <h2 className="text-xl font-display font-bold uppercase tracking-widest text-[var(--ct-ink)] mb-8 border-b-2 border-[var(--ct-border-hard)] pb-2">Monthly Comparison</h2>
-        <div className="w-full h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={MONTHLY_COMPARISON} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--ct-border-hard)" strokeWidth={2} />
-              <XAxis dataKey="month" axisLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 4 }} tickLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 2 }} tick={{ fontSize: 12, fill: 'var(--ct-ink)', fontWeight: 'bold' }} />
-              <YAxis axisLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 4 }} tickLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 2 }} tick={{ fontSize: 12, fill: 'var(--ct-ink)', fontWeight: 'bold' }} />
-              <RechartsTooltip content={<BrutalistTooltip />} cursor={{ fill: 'var(--ct-bg-surface)' }} />
-              <Bar dataKey="previous" fill="var(--ct-ink-muted)" stroke="var(--ct-border-hard)" strokeWidth={2} name="LAST YEAR" />
-              <Bar dataKey="current" fill="var(--ct-accent)" stroke="var(--ct-border-hard)" strokeWidth={2} name="THIS YEAR" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {validActivities.length === 0 ? (
+          <div className="h-[350px] w-full flex items-center justify-center border-4 border-dashed border-[var(--ct-border-light)]">
+            <p className="text-sm font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] px-4 text-center">Log an activity to see this chart</p>
+          </div>
+        ) : (
+          <div className="w-full h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={MONTHLY_COMPARISON} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="0" vertical={false} stroke="var(--ct-border-hard)" strokeWidth={2} />
+                <XAxis dataKey="month" axisLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 4 }} tickLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 2 }} tick={{ fontSize: 12, fill: 'var(--ct-ink)', fontWeight: 'bold' }} />
+                <YAxis axisLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 4 }} tickLine={{ stroke: 'var(--ct-border-hard)', strokeWidth: 2 }} tick={{ fontSize: 12, fill: 'var(--ct-ink)', fontWeight: 'bold' }} />
+                <RechartsTooltip content={<BrutalistTooltip />} cursor={{ fill: 'var(--ct-bg-surface)' }} />
+                <Bar dataKey="previous" fill="var(--ct-ink-muted)" stroke="var(--ct-border-hard)" strokeWidth={2} name="LAST YEAR" />
+                <Bar dataKey="current" fill="var(--ct-accent)" stroke="var(--ct-border-hard)" strokeWidth={2} name="THIS YEAR" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-6 mt-6 pt-4 border-t-2 border-[var(--ct-border-hard)] text-[10px] font-bold uppercase tracking-widest text-[var(--ct-ink)]">
           <div className="flex items-center gap-2">
             <span className="w-4 h-4 border-2 border-[var(--ct-border-hard)] bg-[var(--ct-ink-muted)] shadow-[2px_2px_0px_var(--ct-border-hard)]" /> LAST YEAR

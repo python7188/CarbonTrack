@@ -3,26 +3,22 @@
 // Refactored to "Wow Factor" (Brutalist + 3D WebGL + Motion)
 // ============================================================
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import {
-  Leaf, Flame, Car, Zap, ArrowRight,
-  Check, Target, TrendingDown, Activity, Trophy
-} from 'lucide-react';
+import { Leaf, Flame, Target, Trophy, Zap, Car, Activity as ActivityIcon, TrendingDown, ArrowRight, Check } from 'lucide-react';
 import {
   LineChart, Line, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart as RechartsPieChart, Pie, Cell,
 } from 'recharts';
 
-import type { StatCardData, KpiItem } from '../types';
+import type { StatCardData, KpiItem, TrendPoint, Activity } from '../types';
+import { getHistory } from '../lib/storage';
 import {
   SPARKLINE_DATA,
-  TREND_DATA,
   IMPACT_KPIS,
-  COMMUNITY_STATS,
-  WEEK_DAYS,
+  COMMUNITY_STATS
 } from '../constants';
 import { useChallenges } from '../contexts/ChallengesContext';
 import { WebGLGlobe } from '../components/ui/WebGLGlobe';
@@ -64,7 +60,7 @@ function VisualizerContainer() {
       {/* HUD Overlay */}
       <div className="absolute top-4 left-4 z-20 pointer-events-none">
         <div className="flex items-center gap-2 mb-2 bg-[var(--ct-ink)]/80 px-2 py-1 border border-[var(--ct-accent)]/30 backdrop-blur-sm">
-          <Activity className="w-4 h-4 text-[var(--ct-accent)]" />
+          <ActivityIcon className="w-4 h-4 text-[var(--ct-accent)]" />
           <span className="uppercase font-bold tracking-widest text-white">Global Telemetry</span>
           <span className="animate-pulse text-[var(--ct-accent)] ml-2">●</span>
         </div>
@@ -131,32 +127,25 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { activeChallenges } = useChallenges();
   const [activeTab, setActiveTab] = useState<string>('Month');
-  const activeTrendData = useMemo(() => TREND_DATA[activeTab] ?? TREND_DATA.Month, [activeTab]);
+  const [showStreakPopup, setShowStreakPopup] = useState(false);
 
-  const [activities] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('ct_history');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return Array.isArray(parsed) ? parsed.filter(a => a && typeof a === 'object') : [];
-      }
-    } catch (e) {}
-    return [];
-  });
+  const [activities] = useState<Activity[]>(getHistory);
 
-  const totalEmissions = activities.reduce((sum, act) => sum + Number(act?.co2 || 0), 0);
-  const totalEntries = activities.length;
+  const validActivities = useMemo(() => activities.filter(a => !a.id?.startsWith('tour-completed')), [activities]);
+
+  const totalEmissions = validActivities.reduce((sum, act) => sum + Number(act?.co2 || 0), 0);
+  const totalEntries = validActivities.length;
 
   const streakInfo = useMemo(() => {
     // Default streaks are dynamically calculated now
-    if (!activities.length) return { currentStreak: 0, completedDays: Array(7).fill(false) };
+    if (!activities.length) return { currentStreak: 0, completedDays: Array(7).fill(false), dayLabels: Array(7).fill(''), daysLog: new Set<string>() };
     
     const daysLog = new Set(activities.map(a => {
       try {
         if (!a || (!a.timestamp && !a.date)) return '';
-        const d = new Date(a.timestamp || a.date);
+        const d = new Date(a.timestamp || a.date || '');
         return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
-      } catch (e) {
+      } catch {
         return '';
       }
     }).filter(Boolean));
@@ -176,24 +165,91 @@ export default function DashboardPage() {
     }
     
     const completedDays = Array(7).fill(false);
+    const dayLabels = Array(7).fill('');
     const checkDate = new Date();
+    
+    const labelMap = ['S', 'M', 'T', 'W', 'T', 'F', 'SA'];
+    
     for (let i = 6; i >= 0; i--) {
       const dStr = checkDate.toISOString().split('T')[0];
       completedDays[i] = daysLog.has(dStr);
+      dayLabels[i] = labelMap[checkDate.getDay()];
       checkDate.setDate(checkDate.getDate() - 1);
     }
     
-    return { currentStreak: streak, completedDays };
+    return { currentStreak: streak, completedDays, dayLabels, daysLog };
   }, [activities]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tourCompleted = params.get('tourCompleted') === 'true';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const hasToday = streakInfo.daysLog.has(todayStr);
+    
+    const sessionKey = `ct_streak_shown_${todayStr}`;
+    const alreadyShown = sessionStorage.getItem(sessionKey);
+    
+    if ((hasToday && !alreadyShown && streakInfo.currentStreak > 0) || tourCompleted) {
+      setShowStreakPopup(true);
+      sessionStorage.setItem(sessionKey, 'true');
+      
+      if (tourCompleted) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [streakInfo.daysLog, streakInfo.currentStreak]);
+
+  useEffect(() => {
+    if (showStreakPopup) {
+      const timer = setTimeout(() => setShowStreakPopup(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showStreakPopup]);
+
+  const activeTrendData = useMemo(() => {
+    const today = new Date();
+    const data: TrendPoint[] = [];
+    
+    if (activeTab === 'Week') {
+      const labelMap = ['S', 'M', 'T', 'W', 'T', 'F', 'SA'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+        const daySum = validActivities.filter(a => a.timestamp?.startsWith(dStr) || a.date?.startsWith(dStr)).reduce((sum, a) => sum + Number(a.co2 || 0), 0);
+        data.push({ name: labelMap[d.getDay()], value: parseFloat(daySum.toFixed(1)) });
+      }
+    } else if (activeTab === 'Month') {
+      for (let i = 29; i >= 0; i -= Math.floor(30/6)) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+        const daySum = validActivities.filter(a => a.timestamp?.startsWith(dStr) || a.date?.startsWith(dStr)).reduce((sum, a) => sum + Number(a.co2 || 0), 0);
+        data.push({ name: dStr.split('-').slice(1).join('/'), value: parseFloat(daySum.toFixed(1)) });
+      }
+    } else if (activeTab === 'Year') {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(today.getMonth() - i);
+        const mStr = d.toISOString().slice(0, 7); 
+        const mSum = validActivities.filter(a => a.timestamp?.startsWith(mStr) || a.date?.startsWith(mStr)).reduce((sum, a) => sum + Number(a.co2 || 0), 0);
+        data.push({ name: months[d.getMonth()], value: parseFloat(mSum.toFixed(1)) });
+      }
+    }
+    
+    return data;
+  }, [activeTab, validActivities]);
 
   const dynamicStatCards = [
     { title: 'Total Footprint', value: totalEmissions.toFixed(1), unit: 'kg', icon: Target, showSparkline: true },
-    { title: 'Total Entries', value: totalEntries.toString(), unit: 'items', icon: Activity },
+    { title: 'Total Entries', value: totalEntries.toString(), unit: 'items', icon: ActivityIcon },
     { title: 'Current Streak', value: streakInfo.currentStreak.toString(), unit: 'days', icon: Flame },
     { title: 'Eco Score', value: totalEntries > 0 ? 'Good' : 'N/A', unit: '', icon: Leaf },
   ];
 
-  const categoryTotals = activities.reduce((acc, act) => {
+  const categoryTotals = validActivities.reduce((acc, act) => {
     acc[act.category] = (acc[act.category] || 0) + Number(act?.co2 || 0);
     return acc;
   }, {} as Record<string, number>);
@@ -216,8 +272,25 @@ export default function DashboardPage() {
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="space-y-6 max-w-7xl mx-auto"
+      className="space-y-6 max-w-7xl mx-auto relative"
     >
+      <AnimatePresence>
+        {showStreakPopup && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+          >
+            <div className="card-brutal bg-[var(--ct-accent)] text-[var(--ct-ink)] p-16 text-center shadow-[16px_16px_0px_var(--ct-ink)] border-[24px] border-[#1D9E75] rotate-2">
+              <Flame className="w-32 h-32 mx-auto mb-6 animate-pulse stroke-[2px] text-[#1D9E75] fill-[#1D9E75]" />
+              <h2 className="text-6xl md:text-8xl font-display font-black tracking-tighter uppercase">
+                DAY {streakInfo.currentStreak > 0 ? streakInfo.currentStreak : 1} STREAK!
+              </h2>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <h1 className="sr-only">CarbonTrack Premium Dashboard</h1>
 
       {/* ─── ROW 1: STAT CARDS ─────────────────────────────── */}
@@ -327,26 +400,32 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          <div className="flex-1 w-full h-[160px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activeTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" axisLine={true} tickLine={true} tick={{ fontSize: 10, fill: 'var(--ct-ink)', fontWeight: 700 }} dy={10} stroke="var(--ct-border-hard)" strokeWidth={2} />
-                <RechartsTooltip
-                  contentStyle={{ borderRadius: '0', border: '2px solid var(--ct-border-hard)', boxShadow: '4px 4px 0px var(--ct-border-hard)', fontFamily: 'IBM Plex Mono', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--ct-ink)"
-                  strokeWidth={4}
-                  dot={{ r: 4, fill: '#fff', stroke: 'var(--ct-ink)', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: 'var(--ct-accent)', stroke: 'var(--ct-ink)' }}
-                  isAnimationActive={true}
-                  animationDuration={1500}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {validActivities.length === 0 ? (
+            <div className="h-64 w-full flex items-center justify-center border-4 border-dashed border-[var(--ct-border-light)] mt-6">
+              <p className="text-xl font-bold uppercase tracking-widest text-[var(--ct-ink-muted)]">Log an activity to see this chart</p>
+            </div>
+          ) : (
+            <div className="h-64 w-full mt-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={activeTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="name" axisLine={true} tickLine={true} tick={{ fontSize: 10, fill: 'var(--ct-ink)', fontWeight: 700 }} dy={10} stroke="var(--ct-border-hard)" strokeWidth={2} />
+                  <RechartsTooltip
+                    contentStyle={{ borderRadius: '0', border: '2px solid var(--ct-border-hard)', boxShadow: '4px 4px 0px var(--ct-border-hard)', fontFamily: 'IBM Plex Mono', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="var(--ct-ink)"
+                    strokeWidth={4}
+                    dot={{ r: 4, fill: '#fff', stroke: 'var(--ct-ink)', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: 'var(--ct-accent)', stroke: 'var(--ct-ink)' }}
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </motion.div>
 
         {/* Streak Tracker */}
@@ -369,8 +448,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex justify-between w-full">
-            {WEEK_DAYS.map((day, i) => (
-              <div key={`${day}-${i}`} className="flex flex-col items-center gap-2">
+            {streakInfo.dayLabels.map((day, i) => (
+              <div key={`streak-day-${i}`} className="flex flex-col items-center gap-2">
                 <span className="text-[10px] font-bold uppercase">{day}</span>
                 <div
                   className={`w-6 h-6 border-2 flex items-center justify-center transition-all ${
