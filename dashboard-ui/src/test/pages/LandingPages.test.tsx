@@ -21,7 +21,7 @@ describe('LandingPages', () => {
 
   it('renders LandingAbout smoke test', () => {
     renderWithRouter(<LandingAbout />);
-    expect(screen.getByText(/The Manifesto/i)).toBeInTheDocument();
+    expect(screen.getByText(/Our Manifesto/i, { hidden: true })).toBeInTheDocument();
   });
 
   it('renders LandingContact smoke test', () => {

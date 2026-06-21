@@ -8,6 +8,8 @@ import FootprintPage from '../../pages/FootprintPage';
 import ReducePage from '../../pages/ReducePage';
 import { ChallengesProvider } from '../../contexts/ChallengesContext';
 
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
 vi.mock('../../lib/storage', () => ({
   getHistory: () => [
     { id: '1', category: 'transport', activity: 'Car', amount: 10, unit: 'km', co2: 2.5, timestamp: new Date().toISOString() }
@@ -54,7 +56,7 @@ describe('GoalsPage', () => {
 describe('HistoryPage', () => {
   it('renders the activity history', () => {
     renderWithProviders(<HistoryPage />);
-    expect(screen.getByText(/Activity History/i)).toBeInTheDocument();
+    expect(screen.getByText(/Action History/i)).toBeInTheDocument();
     expect(screen.getByText(/Car/i)).toBeInTheDocument();
   });
 });
