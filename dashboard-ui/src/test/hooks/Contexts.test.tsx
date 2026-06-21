@@ -15,6 +15,17 @@ vi.stubGlobal('fetch', vi.fn(() =>
 
 vi.mock('../../lib/firebase', () => ({ auth: {}, googleProvider: {} }));
 
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: vi.fn((auth, callback) => {
+    callback(null); // simulate no user
+    return () => {}; // return unsubscribe fn
+  }),
+  signInWithPopup: vi.fn(),
+  signOut: vi.fn(),
+  getAuth: vi.fn(),
+  GoogleAuthProvider: vi.fn(),
+}));
+
 describe('useGeminiChat hook', () => {
   it('manages chat state and sends messages', async () => {
     const { result } = renderHook(() => useGeminiChat());
