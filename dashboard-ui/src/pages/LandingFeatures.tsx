@@ -1,5 +1,6 @@
 import { Activity, BarChart3, Target, Zap, Globe, ShieldAlert, Cpu, Layers, Maximize, GitMerge, FileCode2, Command } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export default function LandingFeatures() {
   const fadeInUp = {
@@ -115,9 +116,9 @@ export default function LandingFeatures() {
           <p className="text-xl text-gray-400 font-medium mb-12">
             Join the brutalist revolution in carbon accounting. Data-driven, uncompromising, and absolutely free.
           </p>
-          <button className="btn-brutal bg-[var(--ct-accent)] text-[var(--ct-ink)] text-xl px-12 py-5 font-black uppercase tracking-wider mx-auto hover:bg-white transition-colors shadow-[8px_8px_0px_var(--ct-border-hard)]">
+          <Link to="/auth" className="btn-brutal inline-block bg-[var(--ct-accent)] text-[var(--ct-ink)] text-xl px-12 py-5 font-black uppercase tracking-wider mx-auto hover:bg-white transition-colors shadow-[8px_8px_0px_var(--ct-border-hard)]">
             Open The Dashboard
-          </button>
+          </Link>
         </div>
       </section>
     </div>

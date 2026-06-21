@@ -1,5 +1,6 @@
 import { Mail, Send, MapPin, Clock, ShieldCheck, Database, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 export default function LandingContact() {
   const fadeInUp = {
@@ -13,6 +14,14 @@ export default function LandingContact() {
       opacity: 1,
       transition: { staggerChildren: 0.15 }
     }
+  };
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitted(true);
+    setTimeout(() => setIsSubmitted(false), 5000);
   };
 
   return (
@@ -80,7 +89,14 @@ export default function LandingContact() {
               
               <h3 className="text-3xl font-black font-display uppercase tracking-widest mb-8 border-b-4 border-[var(--ct-border-hard)] pb-4">Initialize Contact</h3>
 
-              <form method="POST" className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
+              {isSubmitted && (
+                <div role="alert" className="mb-8 p-6 border-4 border-[var(--ct-ink)] bg-[var(--ct-accent)] text-[var(--ct-ink)]">
+                  <h4 className="text-xl font-black uppercase mb-2">Transmission Received</h4>
+                  <p className="font-bold">Our agents will respond shortly.</p>
+                </div>
+              )}
+
+              <form method="POST" className="flex flex-col gap-8" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="contact-name" className="block text-sm font-black uppercase tracking-widest mb-3">Your Name</label>
                   <input id="contact-name" name="name" type="text" autoComplete="name" className="w-full bg-white border-4 border-[var(--ct-border-hard)] px-6 py-5 text-xl font-bold focus:outline-none focus:shadow-[8px_8px_0px_var(--ct-border-hard)] transition-shadow" placeholder="JOHN DOE" />

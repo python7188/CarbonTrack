@@ -8,6 +8,8 @@ import { Car, Zap, UtensilsCrossed, ShoppingBag, Plus, Check, AlertCircle, Loade
 import { AnimatePresence, motion } from 'framer-motion';
 import { getGeminiEndpoint } from '../constants';
 import type { Activity } from '../types';
+import { useChallenges } from '../contexts/ChallengesContext';
+import { logger } from '../lib/logger';
 import { calculateCO2 } from '../lib/carbonMath';
 import { getHistory, saveHistory } from '../lib/storage';
 
@@ -156,7 +158,7 @@ export default function TrackPage() {
             co2Estimate = parsed.co2;
           }
         } catch (error) {
-          console.error('Failed to calculate custom CO2:', error);
+          logger.error('Failed to calculate custom CO2:', error);
           setErrors((prev) => ({ ...prev, api: 'Failed to estimate CO2 for custom activity. Please try again.' }));
           setIsCalculating(false);
           return;
@@ -275,6 +277,8 @@ export default function TrackPage() {
                   <input
                     id="customDescription"
                     type="text"
+                    aria-invalid={!!errors.custom}
+                    aria-describedby={errors.custom ? "custom-error" : undefined}
                     value={customDescription}
                     onChange={(e) => { setCustomDescription(e.target.value); setErrors((prev) => ({ ...prev, custom: undefined, api: undefined })); }}
                     placeholder="E.G. BOUGHT A NEW COUCH"
@@ -283,7 +287,7 @@ export default function TrackPage() {
                     }`}
                   />
                   {errors.custom && (
-                    <p className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
+                    <p id="custom-error" role="alert" className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
                       <AlertCircle className="w-5 h-5 stroke-[3px]" /> {errors.custom}
                     </p>
                   )}
@@ -309,6 +313,8 @@ export default function TrackPage() {
                   type="number"
                   min="0"
                   step="any"
+                  aria-invalid={!!errors.amount}
+                  aria-describedby={errors.amount ? "amount-error" : undefined}
                   value={amount}
                   onChange={(e) => { setAmount(e.target.value); setErrors((prev) => ({ ...prev, amount: undefined })); }}
                   placeholder="ENTER AMOUNT..."
@@ -321,7 +327,7 @@ export default function TrackPage() {
                 </span>
               </div>
               {errors.amount && (
-                <p className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
+                <p id="amount-error" role="alert" className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
                   <AlertCircle className="w-5 h-5 stroke-[3px]" /> {errors.amount}
                 </p>
               )}
@@ -335,6 +341,8 @@ export default function TrackPage() {
                 <input
                   id="date"
                   type="date"
+                  aria-invalid={!!errors.date}
+                  aria-describedby={errors.date ? "date-error" : undefined}
                   value={date}
                   onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
                   className={`w-full bg-white border-4 px-6 py-4 text-base text-[var(--ct-ink)] font-bold uppercase focus:outline-none focus:ring-0 focus:-translate-y-1 focus:shadow-[6px_6px_0px_var(--ct-border-hard)] transition-all ${
@@ -343,7 +351,7 @@ export default function TrackPage() {
                 />
               </div>
               {errors.date && (
-                <p className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
+                <p id="date-error" role="alert" className="text-xs font-bold uppercase tracking-widest text-[var(--ct-warning)] mt-3 flex items-center gap-2 bg-white border-2 border-[var(--ct-warning)] p-3">
                   <AlertCircle className="w-5 h-5 stroke-[3px]" /> {errors.date}
                 </p>
               )}

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { logger } from '../lib/logger';
 import type { User } from 'firebase/auth';
 import { 
   onAuthStateChanged, 
@@ -29,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error("Error signing in with Google", error);
+      logger.error("Error signing in with Google", error);
       throw error;
     }
   };

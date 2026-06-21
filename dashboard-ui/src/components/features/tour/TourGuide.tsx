@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { logger } from '../../../lib/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -74,7 +75,7 @@ export function TourGuide() {
         setTextPos({ x: txtRect.left, y: txtRect.top, w: txtRect.width, h: txtRect.height });
       }
     } catch (e) {
-      console.error("TourGuide updatePosition error:", e);
+      logger.error("TourGuide updatePosition error:", e);
     }
   }, [currentStep, isVisible]);
 
@@ -118,7 +119,7 @@ export function TourGuide() {
         saveHistory(activities);
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
 
     // Force redirect to Dashboard to reload app state
@@ -226,6 +227,7 @@ export function TourGuide() {
         >
           <button 
             onClick={handleClose}
+            aria-label="Close tour"
             className="absolute top-4 right-4 p-2 border-2 border-transparent hover:border-[var(--ct-border-hard)] hover:bg-[var(--ct-bg-surface)] transition-all group"
           >
             <X className="w-8 h-8 text-[var(--ct-ink)] group-hover:rotate-90 transition-transform" />
@@ -250,6 +252,7 @@ export function TourGuide() {
             
             <button 
               onClick={handleNext}
+              aria-label={isLast ? 'Start tracking' : 'Next step'}
               className="btn-brutal bg-[var(--ct-ink)] text-white px-8 py-4 border-4 border-[var(--ct-border-hard)] shadow-[6px_6px_0px_var(--ct-accent)] font-black text-xl uppercase flex items-center gap-3 hover:-translate-y-1 transition-transform"
             >
               {isLast ? 'START TRACKING' : 'NEXT STEP'} <ChevronRight className="w-6 h-6 stroke-[3px]" />

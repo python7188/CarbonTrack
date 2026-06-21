@@ -167,15 +167,19 @@ export default function GoalsPage() {
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[var(--ct-ink)]/70 backdrop-blur-sm"
           >
             <motion.div 
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="popup-title"
               initial={{ scale: 0.8, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 20 }}
               className="card-brutal bg-[var(--ct-accent)] border-4 border-[var(--ct-ink)] p-12 flex flex-col items-center text-center max-w-md w-full shadow-[16px_16px_0px_rgba(0,0,0,1)]"
             >
               <span className="text-8xl mb-6 block animate-bounce" style={{ animationDuration: '0.8s' }}>{completedPopup.emoji}</span>
-              <h2 className="text-4xl font-display font-bold uppercase tracking-tighter text-[var(--ct-ink)] mb-4">Completed!</h2>
+              <h2 id="popup-title" className="text-4xl font-display font-bold uppercase tracking-tighter text-[var(--ct-ink)] mb-4">Completed!</h2>
               <p className="text-sm font-bold uppercase tracking-widest text-[var(--ct-ink)] mb-8">You finished: {completedPopup.title}</p>
               <button 
+                autoFocus
                 onClick={() => setCompletedPopup(null)}
                 className="btn-brutal bg-[var(--ct-ink)] text-white px-8 py-3 w-full"
               >

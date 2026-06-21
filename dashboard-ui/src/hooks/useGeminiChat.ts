@@ -5,6 +5,7 @@
 // ============================================================
 
 import { useState, useCallback, useEffect } from 'react';
+import { logger } from '../lib/logger';
 import type { ChatMessage } from '../types';
 import { getGeminiEndpoint, GEMINI_CHAT_SYSTEM_INSTRUCTION } from '../constants';
 
@@ -16,7 +17,7 @@ export function useGeminiChat() {
       const saved = localStorage.getItem('ct_chat_history');
       if (saved) return JSON.parse(saved);
     } catch (e) {
-      console.error('Failed to load chat history', e);
+      logger.error('Failed to load chat history', e);
     }
     return [];
   });

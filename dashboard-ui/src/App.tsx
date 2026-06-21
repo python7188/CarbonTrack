@@ -5,22 +5,25 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { ChallengesProvider } from './contexts/ChallengesContext';
 import { SkeletonLoader } from './components/ui/SkeletonLoader';
+import { ErrorBoundary } from './components/layout/ErrorBoundary';
 
 // Lazy load pages for code splitting
 import { PublicLayout } from './components/layout/PublicLayout';
 
-import LandingHome from './pages/LandingHome';
-import LandingFeatures from './pages/LandingFeatures';
-import LandingAbout from './pages/LandingAbout';
-import LandingContact from './pages/LandingContact';
-import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
-import FootprintPage from './pages/FootprintPage';
-import TrackPage from './pages/TrackPage';
-import InsightsPage from './pages/InsightsPage';
-import ReducePage from './pages/ReducePage';
-import GoalsPage from './pages/GoalsPage';
-import HistoryPage from './pages/HistoryPage';
+import React from 'react';
+
+const LandingHome = React.lazy(() => import('./pages/LandingHome'));
+const LandingFeatures = React.lazy(() => import('./pages/LandingFeatures'));
+const LandingAbout = React.lazy(() => import('./pages/LandingAbout'));
+const LandingContact = React.lazy(() => import('./pages/LandingContact'));
+const AuthPage = React.lazy(() => import('./pages/AuthPage'));
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+const FootprintPage = React.lazy(() => import('./pages/FootprintPage'));
+const TrackPage = React.lazy(() => import('./pages/TrackPage'));
+const InsightsPage = React.lazy(() => import('./pages/InsightsPage'));
+const ReducePage = React.lazy(() => import('./pages/ReducePage'));
+const GoalsPage = React.lazy(() => import('./pages/GoalsPage'));
+const HistoryPage = React.lazy(() => import('./pages/HistoryPage'));
 // A fallback component for loading states
 const PageLoader = () => (
   <div className="p-8 space-y-6">
@@ -53,7 +56,9 @@ export default function App() {
             {/* Protected Routes wrapped in Layout */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <DashboardLayout />
+                <ErrorBoundary>
+                  <DashboardLayout />
+                </ErrorBoundary>
               </ProtectedRoute>
             }>
               <Route index element={<DashboardPage />} />

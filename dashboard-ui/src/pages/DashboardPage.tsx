@@ -391,6 +391,7 @@ export default function DashboardPage() {
                   key={tab}
                   role="tab"
                   aria-selected={activeTab === tab}
+                  aria-controls="trend-panel"
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-2 transition-colors border-r-2 border-[var(--ct-border-hard)] last:border-r-0 ${
                     activeTab === tab
@@ -404,11 +405,11 @@ export default function DashboardPage() {
             </div>
           </div>
           {validActivities.length === 0 ? (
-            <div className="h-64 w-full flex items-center justify-center border-4 border-dashed border-[var(--ct-border-light)] mt-6">
+            <div id="trend-panel" role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="h-64 w-full flex items-center justify-center border-4 border-dashed border-[var(--ct-border-light)] mt-6">
               <p className="text-xl font-bold uppercase tracking-widest text-[var(--ct-ink-muted)]">Log an activity to see this chart</p>
             </div>
           ) : (
-            <div className="h-64 w-full mt-6">
+            <div id="trend-panel" role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="h-64 w-full mt-6">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={activeTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={true} tickLine={true} tick={{ fontSize: 10, fill: 'var(--ct-ink)', fontWeight: 700 }} dy={10} stroke="var(--ct-border-hard)" strokeWidth={2} />
