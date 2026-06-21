@@ -11,7 +11,7 @@ const renderWithRouter = (ui: React.ReactElement) => render(<BrowserRouter>{ui}<
 describe('LandingPages', () => {
   it('renders LandingHome smoke test', () => {
     renderWithRouter(<LandingHome />);
-    expect(screen.getByText(/Brutal Honesty/i)).toBeInTheDocument();
+    expect(screen.getByText(/The Ultimate Carbon Tracking Engine/i)).toBeInTheDocument();
   });
 
   it('renders LandingFeatures smoke test', () => {

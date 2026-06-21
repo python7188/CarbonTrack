@@ -14,32 +14,38 @@ describe('useGeminiInsights hook', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        candidates: [{ content: { parts: [{ text: 'Great progress on reducing emissions!' }] } }]
+        candidates: [{ content: { parts: [{ text: JSON.stringify({
+          tip: "Use public transport.",
+          encouragement: "Great job!",
+          analogy: "Like planting a tree.",
+          savingsKg: 5,
+          actions: []
+        }) }] } }]
       })
     });
 
     const { result } = renderHook(() => useGeminiInsights());
     
     // Initial state
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(null);
-    expect(result.current.insights).toBe(null);
+    expect(result.current.state.status).toBe('idle');
+    expect(result.current.state.errorMessage).toBe(null);
+    expect(result.current.state.data).toBe(null);
 
     // Act
     act(() => {
-      result.current.generateInsights([]);
+      result.current.triggerAnalysis(100, "Transport: 100kg");
     });
 
     // Loading state
-    expect(result.current.loading).toBe(true);
+    expect(result.current.state.status).toBe('loading');
 
     // Success state
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      expect(result.current.state.status).toBe('success');
     });
 
-    expect(result.current.error).toBe(null);
-    expect(result.current.insights).toBe('Great progress on reducing emissions!');
+    expect(result.current.state.errorMessage).toBe(null);
+    expect(result.current.state.data?.tip).toBe('Use public transport.');
   });
 
   it('manages error states', async () => {
@@ -48,14 +54,14 @@ describe('useGeminiInsights hook', () => {
     const { result } = renderHook(() => useGeminiInsights());
     
     act(() => {
-      result.current.generateInsights([]);
+      result.current.triggerAnalysis(100, "Transport: 100kg");
     });
 
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      expect(result.current.state.status).toBe('error');
     });
 
-    expect(result.current.error).toBe('Network error');
-    expect(result.current.insights).toBe(null);
+    expect(result.current.state.errorMessage).toBe('Network error');
+    expect(result.current.state.data).toBe(null);
   });
 });

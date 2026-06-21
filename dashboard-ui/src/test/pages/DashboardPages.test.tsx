@@ -62,13 +62,13 @@ describe('HistoryPage', () => {
 describe('FootprintPage', () => {
   it('renders FootprintPage smoke test', () => {
     renderWithProviders(<FootprintPage />);
-    expect(screen.getByText(/Detailed Footprint/i)).toBeInTheDocument();
+    expect(screen.getByText(/My Footprint/i)).toBeInTheDocument();
   });
 });
 
 describe('ReducePage', () => {
   it('renders ReducePage smoke test', () => {
     renderWithProviders(<ReducePage />);
-    expect(screen.getByText(/Reduce Footprint/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reduce Impact/i)).toBeInTheDocument();
   });
 });
