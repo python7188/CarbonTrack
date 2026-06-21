@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   PieChart,
   Pie,
@@ -23,6 +24,8 @@ export const DonutBreakdown: React.FC<DonutBreakdownProps> = ({
     () => segments.map((seg) => ({ name: seg.name, value: seg.value, color: seg.color })),
     [segments],
   );
+
+  const navigate = useNavigate();
 
   return (
     <div className="glass-card-dark p-7 flex flex-col h-full">
@@ -81,7 +84,11 @@ export const DonutBreakdown: React.FC<DonutBreakdownProps> = ({
       </div>
 
       {/* Action link */}
-      <button className="text-xs text-[#8FA99D] hover:text-white mt-6 text-left flex items-center gap-1.5 transition-colors w-fit font-medium">
+      <button 
+        onClick={() => navigate('/dashboard/footprint')}
+        aria-label="View detailed carbon breakdown analysis"
+        className="text-xs text-[#8FA99D] hover:text-white mt-6 text-left flex items-center gap-1.5 transition-colors w-fit font-medium"
+      >
         View detailed analysis{' '}
         <ArrowRight className="w-3 h-3" aria-hidden="true" />
       </button>

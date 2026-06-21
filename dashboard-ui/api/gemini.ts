@@ -8,7 +8,7 @@ const MAX_REQUESTS = 20;
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS and Security Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'https://carbontrack-nine.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',

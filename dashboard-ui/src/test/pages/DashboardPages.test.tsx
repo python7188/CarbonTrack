@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import InsightsPage from '../../src/pages/InsightsPage';
 import GoalsPage from '../../src/pages/GoalsPage';
 import HistoryPage from '../../src/pages/HistoryPage';
+import FootprintPage from '../../src/pages/FootprintPage';
+import ReducePage from '../../src/pages/ReducePage';
 import { ChallengesProvider } from '../../src/contexts/ChallengesContext';
 
 vi.mock('../../src/lib/storage', () => ({
@@ -54,5 +56,19 @@ describe('HistoryPage', () => {
     renderWithProviders(<HistoryPage />);
     expect(screen.getByText(/Activity History/i)).toBeInTheDocument();
     expect(screen.getByText(/Car/i)).toBeInTheDocument();
+  });
+});
+
+describe('FootprintPage', () => {
+  it('renders FootprintPage smoke test', () => {
+    renderWithProviders(<FootprintPage />);
+    expect(screen.getByText(/Detailed Footprint/i)).toBeInTheDocument();
+  });
+});
+
+describe('ReducePage', () => {
+  it('renders ReducePage smoke test', () => {
+    renderWithProviders(<ReducePage />);
+    expect(screen.getByText(/Reduce Footprint/i)).toBeInTheDocument();
   });
 });
