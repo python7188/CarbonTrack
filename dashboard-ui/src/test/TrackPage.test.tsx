@@ -1,74 +1,75 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
-import { TrackPage } from '../pages/TrackPage';
-import { CarbonProvider } from '../contexts/CarbonContext';
-import { AuthProvider } from '../contexts/AuthContext';
-import { ChallengesProvider } from '../contexts/ChallengesContext';
+import TrackPage from '../pages/TrackPage';
 
-// Mock intersection observer for framer-motion if needed
-window.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: () => null,
-  unobserve: () => null,
-  disconnect: () => null
-}));
-
-// Mock the Chart components to prevent Recharts from throwing in JSDOM
-vi.mock('recharts', async () => {
-  const actual = await vi.importActual('recharts');
+// Mock framer-motion AnimatePresence to just render children
+vi.mock('framer-motion', async () => {
+  const actual = await vi.importActual('framer-motion');
   return {
-    ...actual,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    ...(actual as object),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   };
 });
 
+beforeEach(() => localStorage.clear());
+
 describe('TrackPage', () => {
-  const renderWithProviders = (component: React.ReactNode) => {
-    return render(
-      <BrowserRouter>
-        <AuthProvider>
-          <CarbonProvider>
-            <ChallengesProvider>
-              {component}
-            </ChallengesProvider>
-          </CarbonProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    );
-  };
-
-  it('renders correctly and has main tracking form', () => {
-    renderWithProviders(<TrackPage />);
-    expect(screen.getByText('Quick Log')).toBeInTheDocument();
-    expect(screen.getByText('Category')).toBeInTheDocument();
+  it('renders the activity logging form heading', () => {
+    render(<TrackPage />);
+    expect(screen.getByText('Log Activities')).toBeInTheDocument();
+    expect(screen.getByText('1. Select Category')).toBeInTheDocument();
   });
 
-  it('allows user to select category and type', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<TrackPage />);
-    
-    // Select transport category
-    const categorySelect = screen.getByLabelText('Category');
-    await user.selectOptions(categorySelect, 'transport');
-    expect(categorySelect).toHaveValue('transport');
-    
-    // Check if activities updated
-    const activitySelect = screen.getByLabelText('Activity');
-    expect(activitySelect).toBeEnabled();
+  it('renders all four category buttons', () => {
+    render(<TrackPage />);
+    expect(screen.getByText('Transport')).toBeInTheDocument();
+    expect(screen.getByText('Food')).toBeInTheDocument();
+    expect(screen.getByText('Energy')).toBeInTheDocument();
+    expect(screen.getByText('Shopping')).toBeInTheDocument();
   });
 
-  it('calculates estimate when amount is entered', async () => {
+  it('shows transport activities by default', () => {
+    render(<TrackPage />);
+    expect(screen.getByRole('button', { name: 'Car (petrol)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Car (diesel)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Motorcycle' })).toBeInTheDocument();
+  });
+
+  it('lets the user pick an activity and marks it pressed', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<TrackPage />);
-    
-    const amountInput = screen.getByLabelText(/Amount/i);
-    await user.type(amountInput, '100');
-    
-    expect(amountInput).toHaveValue(100);
-    // Since category is 'transport' and type is 'Car (petrol)', estimate should update
-    const addEntryBtn = screen.getByRole('button', { name: /Add Entry/i });
-    expect(addEntryBtn).toBeInTheDocument();
+    render(<TrackPage />);
+
+    const petrolBtn = screen.getByRole('button', { name: 'Car (petrol)' });
+    await user.click(petrolBtn);
+
+    expect(petrolBtn).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('shows validation error when submitting without an activity', async () => {
+    const user = userEvent.setup();
+    render(<TrackPage />);
+
+    // Fill amount but skip activity selection
+    const amountInput = screen.getByPlaceholderText('ENTER AMOUNT...');
+    await user.type(amountInput, '10');
+
+    const submitBtn = screen.getByRole('button', { name: /SAVE ACTIVITY/i });
+    await user.click(submitBtn);
+
+    expect(await screen.findByText('Please select an activity type.')).toBeInTheDocument();
+  });
+
+  it('shows validation error when amount is missing', async () => {
+    const user = userEvent.setup();
+    render(<TrackPage />);
+
+    // Select an activity but skip amount
+    await user.click(screen.getByRole('button', { name: 'Car (petrol)' }));
+
+    const submitBtn = screen.getByRole('button', { name: /SAVE ACTIVITY/i });
+    await user.click(submitBtn);
+
+    expect(await screen.findByText('Please enter a valid amount greater than 0.')).toBeInTheDocument();
   });
 });

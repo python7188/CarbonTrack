@@ -14,7 +14,6 @@ import {
 } from 'recharts';
 
 import type { StatCardData, KpiItem, TrendPoint, Activity } from '../types';
-import { WebGLGlobe } from '../components/visualizations/WebGLGlobe';
 import { AiInsightWidget } from '../components/features/ai/AiInsightWidget';
 import { getHistory } from '../lib/storage';
 import {

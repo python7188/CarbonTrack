@@ -42,8 +42,8 @@ CarbonTrack was built from the ground up with uncompromising adherence to the hi
 
 ### 1. Code Quality [100%]
 *   **Strict Typing:** The entire application is written in robust TypeScript, ensuring compile-time safety and eliminating entire classes of runtime errors.
-*   **Component Modularity:** UI elements are aggressively isolated into reusable, single-responsibility components (`StatCard`, `LogActivityModal`, `TrendChart`).
-*   **Clean Architecture:** Business logic (carbon math, AI parsing) is decoupled from presentation layers. We utilize custom React hooks (`useGeminiChat`, `useCarbonData`) to keep components stateless and clean.
+*   **Component Modularity:** UI elements are isolated into reusable, single-responsibility components (`Header`, `SkeletonLoader`, `AiInsightWidget`).
+*   **Clean Architecture:** Business logic (carbon math, AI parsing) is decoupled from presentation layers. We utilize custom React hooks (`useGeminiChat`, `useGeminiInsights`) to keep components stateless and clean.
 *   **Linters & Formatting:** Adheres to strict ESLint configurations with zero warnings allowed in production builds.
 
 ### 2. Security [100%]

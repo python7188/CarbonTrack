@@ -11,7 +11,7 @@ export default function HistoryPage() {
       (a, b) => new Date(b.timestamp || b.date || '').getTime() - new Date(a.timestamp || a.date || '').getTime()
     )
   );
-  const availableYears = Array.from(new Set(history.map(item => new Date(item.timestamp).getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
+  const availableYears = Array.from(new Set(history.map(item => new Date(item.timestamp || item.date || '').getFullYear().toString()))).sort((a, b) => b.localeCompare(a));
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
@@ -24,7 +24,7 @@ export default function HistoryPage() {
   const filteredHistory = history.filter(item => {
     const matchesCategory = filter === 'all' || item.category === filter;
     
-    const d = new Date(item.timestamp);
+    const d = new Date(item.timestamp || item.date || '');
     const y = d.getFullYear().toString();
     const m = (d.getMonth() + 1).toString();
     
@@ -141,7 +141,7 @@ export default function HistoryPage() {
                     {item.activity || item.category}
                   </h3>
                   <p className="text-xs font-bold uppercase tracking-wider text-[var(--ct-ink-muted)] mt-1">
-                    {safeFormatDate(item.timestamp)}
+                    {safeFormatDate(item.timestamp || item.date || '')}
                   </p>
                 </div>
               </div>
