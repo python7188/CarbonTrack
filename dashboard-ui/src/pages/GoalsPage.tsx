@@ -175,7 +175,9 @@ export default function GoalsPage() {
               exit={{ scale: 0.8, y: 20 }}
               onKeyDown={(e) => {
                 if (e.key === 'Tab') {
-                  e.preventDefault(); // Simple focus trap: only one button exists, so trap tab here
+                  e.preventDefault();
+                  const btn = e.currentTarget.querySelector('button');
+                  if (btn) btn.focus();
                 }
               }}
               className="card-brutal bg-[var(--ct-accent)] border-4 border-[var(--ct-ink)] p-12 flex flex-col items-center text-center max-w-md w-full shadow-[16px_16px_0px_rgba(0,0,0,1)]"

@@ -258,6 +258,19 @@ export default function DashboardPage() {
     { title: 'Eco Score', value: totalEntries > 0 ? 'Good' : 'N/A', unit: '', icon: Leaf },
   ];
 
+  const dynamicImpactKpis = IMPACT_KPIS.map(kpi => {
+    if (kpi.label === 'CO₂e Reduced') return { ...kpi, val: `${(totalEmissions * 0.15).toFixed(1)} kg` };
+    if (kpi.label === 'Trees Supported') return { ...kpi, val: `${Math.floor((totalEmissions * 0.15) / 21) || 0}` };
+    if (kpi.label === 'Km Travelled Green') return { ...kpi, val: `${validActivities.filter(a => a.category === 'transport').length * 15} km` };
+    return kpi;
+  });
+
+  const dynamicCommunityStats = {
+    totalReduced: (2345678 + totalEmissions).toLocaleString(undefined, { maximumFractionDigits: 0 }),
+    treesEquivalent: (195472 + Math.floor(totalEmissions / 21)).toLocaleString(),
+    activeMembers: COMMUNITY_STATS.activeMembers,
+  };
+
   const categoryTotals = validActivities.reduce((acc, act) => {
     acc[act.category] = (acc[act.category] || 0) + Number(act?.co2 || 0);
     return acc;
@@ -346,6 +359,7 @@ export default function DashboardPage() {
           </div>
 
           <motion.button 
+            onClick={() => navigate('/dashboard/footprint')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="btn-brutal w-full mt-6 text-xs bg-white text-[var(--ct-ink)] hover:bg-[var(--ct-accent)]"
@@ -473,7 +487,7 @@ export default function DashboardPage() {
         <motion.div variants={itemVariants} className="lg:col-span-3 card-brutal p-6 flex flex-col justify-between bg-[var(--ct-bg-surface)]">
           <h3 className="font-bold text-sm uppercase tracking-widest mb-6 pb-4 border-b-2 border-[var(--ct-border-hard)]">Impact KPIs</h3>
           <div className="flex flex-col gap-4">
-            {IMPACT_KPIS.map((kpi: KpiItem, i: number) => {
+            {dynamicImpactKpis.map((kpi: KpiItem, i: number) => {
               const KpiIcon = kpi.icon;
               return (
                 <motion.div 
@@ -557,7 +571,7 @@ export default function DashboardPage() {
           </motion.div>
           <h3 className="font-bold text-sm uppercase tracking-widest mb-2 z-10">Global Impact</h3>
           <h2 className="text-4xl md:text-5xl font-bold font-display tracking-tighter mb-4 z-10 flex items-baseline">
-            {COMMUNITY_STATS.totalReduced}
+            {dynamicCommunityStats.totalReduced}
             <span className="text-lg uppercase ml-2 tracking-widest font-mono">kg CO₂e</span>
           </h2>
           <motion.div 
@@ -565,7 +579,7 @@ export default function DashboardPage() {
             className="bg-white border-2 border-[var(--ct-border-hard)] px-4 py-2 shadow-[4px_4px_0px_var(--ct-border-hard)] z-10 cursor-pointer"
           >
             <p className="text-xs font-bold uppercase tracking-widest">
-              Equivalent to {COMMUNITY_STATS.treesEquivalent} trees planted
+              Equivalent to {dynamicCommunityStats.treesEquivalent} trees planted
             </p>
           </motion.div>
         </motion.div>

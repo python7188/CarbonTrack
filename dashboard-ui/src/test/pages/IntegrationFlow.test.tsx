@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import TrackPage from '../../pages/TrackPage';
 import HistoryPage from '../../pages/HistoryPage';
@@ -19,6 +20,7 @@ vi.mock('framer-motion', async () => {
 
 describe('Integration Flow: Track to History', () => {
   it('logs a new activity and verifies it appears in the history', async () => {
+    const user = userEvent.setup();
     const { unmount } = render(
       <MemoryRouter>
         <TrackPage />
@@ -27,15 +29,15 @@ describe('Integration Flow: Track to History', () => {
 
     // 1. Select activity type "Car (petrol)" (Transport is default category)
     const carBtn = screen.getByRole('button', { name: /Car \(petrol\)/i });
-    fireEvent.click(carBtn);
+    await user.click(carBtn);
 
     // 2. Enter amount
     const amountInput = screen.getByPlaceholderText(/ENTER AMOUNT\.\.\./i);
-    fireEvent.change(amountInput, { target: { value: '15' } });
+    await user.type(amountInput, '15');
 
     // 3. Submit
     const submitBtn = screen.getByRole('button', { name: /SAVE ACTIVITY/i });
-    fireEvent.click(submitBtn);
+    await user.click(submitBtn);
 
     // 4. Wait for success toast
     expect(await screen.findByText(/ENTRY LOGGED SUCCESSFULLY/i)).toBeInTheDocument();

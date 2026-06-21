@@ -4,7 +4,7 @@
 // ============================================================
 
 import { useState } from 'react';
-import { TrendingDown, Lightbulb, Wallet, Flame, Award, Car, UtensilsCrossed, Zap, ShoppingBag } from 'lucide-react';
+import { TrendingDown, TrendingUp, Lightbulb, Wallet, Flame, Award, Car, UtensilsCrossed, Zap, ShoppingBag } from 'lucide-react';
 import {
   PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid,
@@ -96,6 +96,15 @@ export default function FootprintPage() {
     { month: 'This Month', previous: parseFloat(lastYearThisMonthTotal.toFixed(1)), current: parseFloat(thisMonthTotal.toFixed(1)) },
   ];
 
+  const reductionPct = lastMonthTotal > 0 ? Math.round(((lastMonthTotal - thisMonthTotal) / lastMonthTotal) * 100) : 0;
+  const isIncrease = reductionPct < 0;
+  
+  const savedKg = Math.max(0, lastMonthTotal - thisMonthTotal).toFixed(1);
+
+  const globalAvg = 910;
+  const diffAvgPct = Math.round(((globalAvg - thisMonthTotal) / globalAvg) * 100);
+  const isBelowAvg = diffAvgPct >= 0;
+
   return (
     <div className="space-y-8 w-full max-w-none mx-auto">
       <div className="border-b-4 border-[var(--ct-border-hard)] pb-4 mb-8">
@@ -146,20 +155,26 @@ export default function FootprintPage() {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="card-brutal p-6 flex flex-col items-center text-center justify-center">
-            <TrendingDown className="w-10 h-10 text-[var(--ct-accent)] stroke-[3px] mb-3" />
-            <span className="text-4xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">18%</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mt-2">Reduction vs Last Month</span>
+            {isIncrease ? (
+              <TrendingUp className="w-10 h-10 text-[var(--ct-warning)] stroke-[3px] mb-3" />
+            ) : (
+              <TrendingDown className="w-10 h-10 text-[var(--ct-accent)] stroke-[3px] mb-3" />
+            )}
+            <span className="text-4xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">{Math.abs(reductionPct)}%</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mt-2">
+              {isIncrease ? 'Increase vs Last Month' : 'Reduction vs Last Month'}
+            </span>
           </div>
           <div className="card-brutal p-6 flex flex-col items-center text-center justify-center">
             <Lightbulb className="w-10 h-10 text-[var(--ct-warning)] stroke-[3px] mb-3" />
-            <span className="text-4xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">78</span>
+            <span className="text-4xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">{savedKg}</span>
             <span className="text-xs font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mt-2">kg CO₂e Saved</span>
           </div>
           <div className="card-brutal p-6 flex flex-col items-center text-center justify-center sm:col-span-2 bg-[var(--ct-bg-surface)]">
             <span className="text-xs font-bold uppercase tracking-widest text-[var(--ct-ink-muted)] mb-2">Global Average</span>
-            <span className="text-5xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">910 <span className="text-base tracking-widest uppercase">kg CO₂e</span></span>
-            <span className="text-xs font-bold uppercase tracking-widest text-[var(--ct-ink)] bg-[var(--ct-accent)] px-4 py-2 mt-4 border-2 border-[var(--ct-border-hard)] shadow-[2px_2px_0px_var(--ct-border-hard)]">
-              You're 52% below average!
+            <span className="text-5xl font-display font-bold text-[var(--ct-ink)] tracking-tighter">{globalAvg} <span className="text-base tracking-widest uppercase">kg CO₂e</span></span>
+            <span className={`text-xs font-bold uppercase tracking-widest px-4 py-2 mt-4 border-2 border-[var(--ct-border-hard)] shadow-[2px_2px_0px_var(--ct-border-hard)] ${isBelowAvg ? 'bg-[var(--ct-accent)] text-[var(--ct-ink)]' : 'bg-[var(--ct-warning)] text-white'}`}>
+              You're {Math.abs(diffAvgPct)}% {isBelowAvg ? 'below' : 'above'} average!
             </span>
           </div>
         </div>
