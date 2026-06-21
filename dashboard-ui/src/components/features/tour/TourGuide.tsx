@@ -110,7 +110,7 @@ export function TourGuide() {
         activities.push({
           id: 'tour-completed-' + Date.now(),
           activity: 'CUSTOM',
-          category: 'other',
+          category: 'waste',
           amount: 1,
           unit: 'tour',
           co2: 0,

@@ -3,7 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGeminiInsights } from '../../hooks/useGeminiInsights';
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+globalThis.fetch = mockFetch;
 
 describe('useGeminiInsights hook', () => {
   beforeEach(() => {

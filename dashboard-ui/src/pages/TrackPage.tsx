@@ -7,8 +7,7 @@ import { useState, useCallback } from 'react';
 import { Car, Zap, UtensilsCrossed, ShoppingBag, Plus, Check, AlertCircle, Loader2, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getGeminiEndpoint } from '../constants';
-import type { Activity } from '../types';
-import { useChallenges } from '../contexts/ChallengesContext';
+import type { Activity, FootprintCategory } from '../types';
 import { logger } from '../lib/logger';
 import { calculateCO2 } from '../lib/carbonMath';
 import { getHistory, saveHistory } from '../lib/storage';
@@ -75,7 +74,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 // ── Page Component ──────────────────────────────────────────
 
 export default function TrackPage() {
-  const [category, setCategory] = useState<string>('transport');
+  const [category, setCategory] = useState<FootprintCategory>('transport');
   const [activityType, setActivityType] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -87,7 +86,7 @@ export default function TrackPage() {
 
   const currentOptions = ACTIVITY_OPTIONS[category];
 
-  const handleCategoryChange = useCallback((cat: string) => {
+  const handleCategoryChange = useCallback((cat: FootprintCategory) => {
     setCategory(cat);
     setActivityType('');
     setAmount('');
@@ -217,7 +216,7 @@ export default function TrackPage() {
                   <button
                     key={key}
                     type="button"
-                    onClick={() => handleCategoryChange(key)}
+                    onClick={() => handleCategoryChange(key as FootprintCategory)}
                     className={`flex flex-col items-center justify-center gap-3 p-6 border-4 transition-all font-bold uppercase tracking-widest ${
                       isActive
                         ? 'border-[var(--ct-border-hard)] bg-[var(--ct-ink)] text-white shadow-[6px_6px_0px_var(--ct-border-hard)] translate-x-[-2px] translate-y-[-2px]'

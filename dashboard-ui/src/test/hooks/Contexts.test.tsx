@@ -16,7 +16,7 @@ vi.stubGlobal('fetch', vi.fn(() =>
 vi.mock('../../lib/firebase', () => ({ auth: {}, googleProvider: {} }));
 
 vi.mock('firebase/auth', () => ({
-  onAuthStateChanged: vi.fn((auth, callback) => {
+  onAuthStateChanged: vi.fn((_auth, callback) => {
     callback(null); // simulate no user
     return () => {}; // return unsubscribe fn
   }),
