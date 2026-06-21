@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useGeminiInsights } from '../../src/hooks/useGeminiInsights';
+import { useGeminiInsights } from '../../hooks/useGeminiInsights';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

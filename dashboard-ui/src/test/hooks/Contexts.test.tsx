@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useGeminiChat } from '../../src/hooks/useGeminiChat';
-import { AuthProvider, useAuth } from '../../src/contexts/AuthContext';
-import { ChallengesProvider, useChallenges } from '../../src/contexts/ChallengesContext';
+import { useGeminiChat } from '../../hooks/useGeminiChat';
+import { AuthProvider, useAuth } from '../../contexts/AuthContext';
+import { ChallengesProvider, useChallenges } from '../../contexts/ChallengesContext';
 
 vi.stubGlobal('fetch', vi.fn(() =>
   Promise.resolve({

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import LandingHome from '../../src/pages/LandingHome';
-import LandingFeatures from '../../src/pages/LandingFeatures';
-import LandingAbout from '../../src/pages/LandingAbout';
-import LandingContact from '../../src/pages/LandingContact';
+import LandingHome from '../../pages/LandingHome';
+import LandingFeatures from '../../pages/LandingFeatures';
+import LandingAbout from '../../pages/LandingAbout';
+import LandingContact from '../../pages/LandingContact';
 
 const renderWithRouter = (ui: React.ReactElement) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
