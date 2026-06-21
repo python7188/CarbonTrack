@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Trash2, Activity, Filter } from 'lucide-react';
+import { Calendar, Trash2, Activity, Filter, Download } from 'lucide-react';
 import { getHistory } from '../lib/storage';
 
 import type { Activity as ActivityType } from '../types';
@@ -118,6 +118,22 @@ export default function HistoryPage() {
                 <option key={m.value} value={m.value}>{m.label}</option>
               ))}
             </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));
+                const a = document.createElement('a');
+                a.href = dataStr;
+                a.download = "carbontrack_history.json";
+                a.click();
+              }}
+              className="bg-[var(--ct-ink)] text-white border-2 border-[var(--ct-ink)] px-4 py-2 text-sm font-bold uppercase tracking-widest shadow-[2px_2px_0px_var(--ct-border-hard)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_var(--ct-border-hard)] hover:bg-[var(--ct-accent)] hover:text-[var(--ct-ink)] transition-all flex items-center gap-2"
+            >
+              <Download className="w-4 h-4 stroke-[3px]" />
+              Export
+            </button>
           </div>
         </div>
       </div>

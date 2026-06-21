@@ -22,7 +22,7 @@ export type FootprintCategory = 'transport' | 'energy' | 'food' | 'shopping' | '
 
 export interface Activity {
   id: string;
-  category: string;
+  category: FootprintCategory;
   activity: string;
   amount: number;
   unit: string;
@@ -60,6 +60,7 @@ export interface StatCardData {
   icon?: LucideIcon;
   iconColor?: string;
   showSparkline?: boolean;
+  sparklineData?: SparklinePoint[];
 }
 
 // ── Streak ──────────────────────────────────────────────────

@@ -120,7 +120,7 @@ function StatCard({ stat }: { stat: StatCardData }) {
       {stat.showSparkline && (
         <div className="absolute bottom-4 right-4 w-20 h-10 opacity-30 group-hover:opacity-100 transition-opacity">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={SPARKLINE_DATA}>
+            <LineChart data={stat.sparklineData || []}>
               <Line type="step" dataKey="value" stroke="var(--ct-border-hard)" strokeWidth={2} dot={false} isAnimationActive={true} animationDuration={1500} />
             </LineChart>
           </ResponsiveContainer>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
   }, [activeTab, validActivities]);
 
   const dynamicStatCards = [
-    { title: 'Total Footprint', value: totalEmissions.toFixed(1), unit: 'kg', icon: Target, showSparkline: true },
+    { title: 'Total Footprint', value: totalEmissions.toFixed(1), unit: 'kg', icon: Target, showSparkline: true, sparklineData: activeTrendData.length ? activeTrendData.map(d => ({ value: d.value })) : SPARKLINE_DATA },
     { title: 'Total Entries', value: totalEntries.toString(), unit: 'items', icon: ActivityIcon },
     { title: 'Current Streak', value: streakInfo.currentStreak.toString(), unit: 'days', icon: Flame },
     { title: 'Eco Score', value: totalEntries > 0 ? 'Good' : 'N/A', unit: '', icon: Leaf },

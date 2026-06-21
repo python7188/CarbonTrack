@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+interface GeminiPart { text: string }
+interface GeminiContent { role: string; parts: GeminiPart[] }
+
 // Simple in-memory rate limiting (per cold start)
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 const WINDOW_MS = 60000; // 1 minute
@@ -59,17 +62,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Clean the payload
-  const safePayload: any = {
-    contents: contents.map((c: any) => ({
+  const safePayload: { contents: GeminiContent[]; systemInstruction?: { parts: GeminiPart[] }; generationConfig?: Record<string, unknown> } = {
+    contents: contents.map((c: { role?: string; parts?: { text?: string }[] }) => ({
       role: c.role === 'model' ? 'model' : 'user',
-      parts: Array.isArray(c.parts) ? c.parts.map((p: any) => ({ text: String(p.text || '').substring(0, 4000) })) : []
+      parts: Array.isArray(c.parts) ? c.parts.map((p: { text?: string }) => ({ text: String(p.text || '').substring(0, 4000) })) : []
     }))
   };
 
   // Only allow systemInstruction if it strictly matches our expected format/content limits
   if (systemInstruction && Array.isArray(systemInstruction.parts)) {
     safePayload.systemInstruction = {
-      parts: systemInstruction.parts.map((p: any) => ({ text: String(p.text || '').substring(0, 4000) }))
+      parts: systemInstruction.parts.map((p: { text?: string }) => ({ text: String(p.text || '').substring(0, 4000) }))
     };
   }
 

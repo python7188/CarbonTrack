@@ -11,7 +11,7 @@ import { getGeminiEndpoint, GEMINI_CHAT_SYSTEM_INSTRUCTION } from '../constants'
 
 const MAX_MESSAGE_LENGTH = 500;
 
-export function useGeminiChat() {
+export function useGeminiChat(): { messages: ChatMessage[]; sendMessage: (text: string) => Promise<void>; isLoading: boolean; error: string | null; clearHistory: () => void } {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem('ct_chat_history');

@@ -10,6 +10,33 @@ import { ChallengesProvider } from '../../contexts/ChallengesContext';
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+vi.mock('framer-motion', async () => {
+  const actual = await vi.importActual('framer-motion');
+  return {
+    ...(actual as object),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
+
+vi.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+  LineChart: () => <div>LineChart</div>,
+  Line: () => <div>Line</div>,
+  PieChart: () => <div>PieChart</div>,
+  Pie: () => <div>Pie</div>,
+  Cell: () => <div>Cell</div>,
+  BarChart: () => <div>BarChart</div>,
+  Bar: () => <div>Bar</div>,
+  XAxis: () => <div>XAxis</div>,
+  YAxis: () => <div>YAxis</div>,
+  CartesianGrid: () => <div>CartesianGrid</div>,
+  Tooltip: () => <div>Tooltip</div>,
+}));
+
+vi.mock('@react-three/fiber', () => ({
+  Canvas: ({ children }: any) => <div>{children}</div>,
+}));
+
 vi.mock('../../lib/storage', () => ({
   getHistory: () => [
     { id: '1', category: 'transport', activity: 'Car', amount: 10, unit: 'km', co2: 2.5, timestamp: new Date().toISOString() }

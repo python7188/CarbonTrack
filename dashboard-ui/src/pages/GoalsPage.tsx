@@ -173,6 +173,11 @@ export default function GoalsPage() {
               initial={{ scale: 0.8, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 20 }}
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  e.preventDefault(); // Simple focus trap: only one button exists, so trap tab here
+                }
+              }}
               className="card-brutal bg-[var(--ct-accent)] border-4 border-[var(--ct-ink)] p-12 flex flex-col items-center text-center max-w-md w-full shadow-[16px_16px_0px_rgba(0,0,0,1)]"
             >
               <span className="text-8xl mb-6 block animate-bounce" style={{ animationDuration: '0.8s' }}>{completedPopup.emoji}</span>

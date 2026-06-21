@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getHistory, saveHistory } from '../lib/storage';
 import type { Activity } from '../types';
+import { logger } from '../lib/logger';
 
 const sample: Activity = {
   id: '1', category: 'transport', activity: 'Car (petrol)',
@@ -18,8 +19,10 @@ describe('storage', () => {
     expect(getHistory()).toEqual([sample]);
   });
   it('returns [] and does not throw on corrupted data', () => {
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
     localStorage.setItem('ct_history', '{not valid json');
     expect(getHistory()).toEqual([]);
+    errorSpy.mockRestore();
   });
   it('dispatches history_updated on save', () => {
     const handler = vi.fn();

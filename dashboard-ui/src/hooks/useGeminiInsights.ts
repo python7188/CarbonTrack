@@ -30,7 +30,7 @@ function isValidInsightPayload(obj: unknown): obj is InsightPayload {
   return true;
 }
 
-export function useGeminiInsights() {
+export function useGeminiInsights(): { state: InsightState; triggerAnalysis: (totalKg: number, categoryBreakdown: string) => Promise<void>; resetState: () => void } {
   const [state, setState] = useState<InsightState>(INITIAL_STATE);
   const lastCallTimeRef = useRef<number>(0);
 
